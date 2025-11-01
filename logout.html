@@ -63,12 +63,12 @@
         signOut(auth).then(() => {
             // Sign-out successful.
             // Redirect to the login page.
-            window.location.href = "index.html";
+            window.location.href = "auth.html"; // <-- ★★★ FIX #1 ★★★
         }).catch((error) => {
             // An error happened.
             console.error("Logout Error:", error);
             // Still redirect to login page
-            window.location.href = "index.html";
+            window.location.href = "auth.html"; // <-- ★★★ FIX #2 ★★★
         });
     </script>
 </body>
