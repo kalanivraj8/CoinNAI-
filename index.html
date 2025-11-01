@@ -5,14 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CoinNAI — Smart Portfolio + Accurate AI Signals (Demo)</title>
 <meta name="description" content="Accurate crypto portfolio tracker for India with SMA AI signals and INR tax estimation - Demo" />
-<!-- Base Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Libraries for Candlestick Chart -->
 <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.0/dist/chartjs-chart-financial.min.js"></script>
 
-<!-- Firebase SDK for Auth -->
 <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
 <script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
 
@@ -271,7 +268,6 @@
     <h1>CoinNAI</h1>
     <div class="tagline">Smart Portfolio • AI Signals • INR — Demo</div>
   </div>
-  <!-- MODIFIED: Changed to an <a> link to logout.html -->
   <a href="logout.html" id="logoutBtn" title="Logout">Logout</a>
 </header>
 
@@ -370,7 +366,7 @@
       <div class="fs-close" id="fsClose" title="Close fullscreen">✕</div>
       <div id="fsSpinner" class="spinner" style="display:none;"></div>
     </div>
-    <div class="fs-body">
+    <div classs="fs-body">
       <div id="fsChartDateRange" class="small"></div>
       <div class="fs-canvas-wrap">
         <canvas id="fsLineChart" class="fs-canvas"></canvas>
@@ -418,7 +414,8 @@ onAuthStateChanged(auth, (user) => {
     // --- THIS IS THE FIX ---
     startApp(); // Calls the renamed function
   } else {
-    window.location.href = "index.html";
+    // ★★★ THIS IS THE FIX for the infinite loop ★★★
+    window.location.href = "auth.html";
   }
 });
 
