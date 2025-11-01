@@ -366,7 +366,7 @@
       <div class="fs-close" id="fsClose" title="Close fullscreen">✕</div>
       <div id="fsSpinner" class="spinner" style="display:none;"></div>
     </div>
-    <div classs="fs-body">
+    <div class="fs-body">
       <div id="fsChartDateRange" class="small"></div>
       <div class="fs-canvas-wrap">
         <canvas id="fsLineChart" class="fs-canvas"></canvas>
@@ -411,10 +411,8 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById('mainContent').style.display = 'grid';
     document.getElementById('footer').style.display = 'block';
-    // --- THIS IS THE FIX ---
-    startApp(); // Calls the renamed function
+    startApp();
   } else {
-    // ★★★ THIS IS THE FIX for the infinite loop ★★★
     window.location.href = "auth.html";
   }
 });
@@ -451,7 +449,6 @@ const clearLogsBtn = document.getElementById('clearLogs');
 const openMailBtn = document.getElementById('openMail');
 const appLoader = document.getElementById('appLoader');
 const toast = document.getElementById('toast');
-// const logoutBtn = document.getElementById('logoutBtn'); // No longer needed, it's a link
 let toastTimeout = null;
 
 const fsModal = document.getElementById('fsModal');
@@ -529,7 +526,7 @@ function inr(x) {
   return '₹' + Number(x).toLocaleString('en-IN', {maximumFractionDigits: 2});
 }
 function formatDate(timestamp) {
-  return new Date(timestamp).toLocaleDateString('en-IN', {
+  return new Date(timestamp).toLocaleString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric'
   });
 }
@@ -964,52 +961,79 @@ function setActiveTab(tabName) {
     fsCandleChartCanvas.style.display = 'block';
   }
 }
+
+// ★★★ THIS IS THE NEW, MORE ROBUST FUNCTION ★★★
 async function openFSForCoin(id) {
   fsSpinner.style.display = 'inline-block';
   setActiveTab(currentlyActiveTab || 'price');
   fsChartDateRange.textContent = '';
-  
+
+  // We will fetch and draw charts independently.
+  // This way, if one fails, the others might still load.
+
+  // 1. Fetch Line Chart Data (Price, SMA, RSI, MACD)
   try {
     const lineChartUrl = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=inr&days=30`;
-    const ohlcChartUrl = `https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=inr&days=30`;
-
-    const [lineRes, ohlcRes] = await Promise.all([
-      fetch(lineChartUrl),
-      fetch(ohlcChartUrl)
-    ]);
-    if (!lineRes.ok || !ohlcRes.ok) throw new Error('Failed to fetch chart data');
-
+    const lineRes = await fetch(lineChartUrl);
+    if (!lineRes.ok) throw new Error('Failed to fetch line chart data');
+    
     const lineJson = await lineRes.json();
-    const ohlcJson = await ohlcRes.json();
-
     const prices = lineJson.prices.map(p => ({timestamp: p[0], price: p[1]}));
-    const sma7 = getSMAArr(prices, 7);
-    const sma30 = getSMAArr(prices, 30);
     
-    showFsChart(prices, sma7, sma30);
-    drawRSI(prices);
-    drawMACD(prices);
-    
-    const startDate = formatDate(prices[0].timestamp);
-    const endDate = formatDate(prices[prices.length - 1].timestamp);
-    fsChartDateRange.textContent = `Range: ${startDate} - ${endDate}`;
-
-    const ohlcData = ohlcJson.map(d => ({ 
-      x: d[0], o: d[1], h: d[2], l: d[3], c: d[4]
-    }));
-    drawCandlestickChart(ohlcData);
-    logEvent('load_fullscreen_data_success', { id });
+    // If data is good, draw all line-based charts
+    if (prices.length > 0) {
+      const sma7 = getSMAArr(prices, 7);
+      const sma30 = getSMAArr(prices, 30);
+      showFsChart(prices, sma7, sma30);
+      drawRSI(prices);
+      drawMACD(prices);
+      
+      const startDate = formatDate(prices[0].timestamp);
+      const endDate = formatDate(prices[prices.length - 1].timestamp);
+      fsChartDateRange.textContent = `Range: ${startDate} - ${endDate}`;
+      logEvent('load_line_chart_success', { id });
+    } else {
+      throw new Error('Empty price data');
+    }
   } catch (e) {
+    // Failed to load line chart
     destroyIfExists(fsChart);
     const ctx = fsLineChartCanvas.getContext('2d');
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif';
-    ctx.fillText('Failed to load chart data', 20, 40);
-    fsChartDateRange.textContent = 'Error loading data';
-    logEvent('load_fullscreen_data_error', { id, message: e.message });
-  } finally {
-    fsSpinner.style.display = 'none';
+    ctx.fillStyle = '#ffa6a6'; ctx.font = '16px sans-serif';
+    ctx.fillText('Failed to load Price/SMA/RSI/MACD data (API Error)', 20, 40);
+    fsChartDateRange.textContent = 'Error loading line chart';
+    logEvent('load_line_chart_error', { id, message: e.message });
   }
+
+  // 2. Fetch Candlestick (OHLC) Data
+  try {
+    const ohlcChartUrl = `https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=inr&days=30`;
+    const ohlcRes = await fetch(ohlcChartUrl);
+    if (!ohlcRes.ok) throw new Error('Failed to fetch candlestick data');
+    
+    const ohlcJson = await ohlcRes.json();
+    const ohlcData = ohlcJson.map(d => ({ 
+      x: d[0], o: d[1], h: d[2], l: d[3], c: d[4]
+    }));
+
+    if (ohlcData.length > 0) {
+      drawCandlestickChart(ohlcData);
+      logEvent('load_candle_chart_success', { id });
+    } else {
+      throw new Error('Empty OHLC data');
+    }
+  } catch (e) {
+    // Failed to load candle chart
+    destroyIfExists(fsCandleChartInstance);
+    const ctx = fsCandleChartCanvas.getContext('2d');
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = '#ffa6a6'; ctx.font = '16px sans-serif';
+    ctx.fillText('Failed to load Candlestick data (API Error)', 20, 40);
+    logEvent('load_candle_chart_error', { id, message: e.message });
+  }
+  
+  fsSpinner.style.display = 'none';
 }
 
 /* -------------------------
@@ -1138,11 +1162,8 @@ window.addEventListener('focus', () => {
 /* -------------------------
    Init (Called by Auth Guard)
    ------------------------- */
-// --- THIS IS THE FIX ---
 async function startApp() {
   showLoader(true);
-  
-  // No listener needed for logout, it's a direct link now
   
   await loadCoins();
   if (selectedCoin) {
