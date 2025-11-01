@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CoinNAI — Smart Portfolio + Accurate AI Signals (Demo)</title>
+<meta name="description" content="Accurate crypto portfolio tracker for India with SMA AI signals and INR tax estimation - Demo" />
+<!-- Base Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Libraries for Candlestick Chart -->
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.0/dist/chartjs-chart-financial.min.js"></script>
+
+<!-- Firebase SDK for Auth -->
+<script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"></script>
+
+<style>
+  :root {
+    --bg: #0d1523;
+    --card-bg: linear-gradient(170deg, rgba(22, 38, 65, 0.8), rgba(15, 28, 48, 0.85));
+    --muted: #a0afc7;
+    --accent: #00c2a8;
+    --green: #7ef3c9;
+    --red: #ffa6a6;
+    --shadow: rgba(0, 194, 168, 0.2);
+  }
+  html,body {height:100%;}
+  * {box-sizing:border-box;}
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, #001018, #0d1523);
+    color: #dbe6f1;
+    margin: 0; padding: 16px; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    -webkit-user-select:none; user-select:none;
+  }
+
+  #appLoader {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--bg);
+    color: var(--accent);
+    font-weight: 700; font-size: 16px;
+    z-index: 2000; transition: opacity 0.5s;
+  }
+  .spinner {
+    width:36px; height:36px; border-radius:50%;
+    border:4px solid rgba(255,255,255,0.08);
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite; margin-bottom: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- MODIFIED: Header for Desktop --- */
+  header {
+    width: 100%; 
+    max-width: 1100px; /* MODIFIED: Wider layout */
+    margin-bottom: 18px; user-select: none;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* NEW: Cleaner app bar style */
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 16px;
+  }
+  header h1 { 
+    font-size: 22px; margin: 0; font-weight: 700; 
+    letter-spacing: 0.1em;
+  }
+  .tagline {font-size: 13px; color: var(--muted); margin-top: 2px;}
+  
+  /* MODIFIED: Changed to a link */
+  #logoutBtn {
+    background: rgba(255,100,100,0.15);
+    color: var(--red);
+    border: 1px solid var(--red);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none; /* As it's an <a> tag now */
+    display: inline-block;
+  }
+  #logoutBtn:hover {
+    background: rgba(255,100,100,0.3);
+    box-shadow: none;
+  }
+
+  .small {font-size: 13px; color: var(--muted);}
+  
+  .dashboard-grid {
+    width: 100%; 
+    max-width: 1100px; /* MODIFIED: Wider layout */
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  @media (min-width: 700px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .dashboard-grid > #taxCard {
+      grid-column: 1 / -1;
+    }
+  }
+  .card {
+    width: 100%;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius:14px; padding:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.25), 0 0 8px var(--shadow);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  label {font-weight:600;font-size:13px;color:var(--muted); display: block; margin-bottom: 4px;}
+  input, select, button {
+    width: 100%; padding: 12px 14px;
+    border-radius:10px; border: 1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.05);
+    color:#dbe6f1; font-weight:600;
+    margin-top:10px; font-size:15px;
+    transition: all 0.25s;
+  }
+  input:focus, select:focus {
+    outline:none;
+    background:rgba(0,194,168,0.15);
+    border-color: var(--accent);
+  }
+  button {
+    cursor: pointer; background: var(--accent); border:none; color: var(--bg);
+    font-weight: 700;
+  }
+  /* MODIFIED: Removed laggy transform */
+  button:hover {background:#03b899; box-shadow: 0 0 10px var(--shadow);}
+  button.remove {
+    background: rgba(255,100,100,0.15);
+    color: var(--red);
+    border: 1px solid var(--red);
+  }
+  button.remove:hover { background: rgba(255,100,100,0.3); box-shadow: none; }
+  
+  .row { display:flex; gap:14px; margin-top:14px;}
+  .col {flex:1;}
+  .portfolio-list { display:flex; flex-direction:column; gap:14px; margin-top:14px;}
+  .asset { 
+    display:flex; justify-content:space-between; align-items: center;
+    padding:14px 18px;
+    border-radius:12px; background:rgba(255,255,255,0.06); font-weight:600;
+  }
+  .green {color: var(--green);} .red {color: var(--red);}
+  #totalVal {font-size:28px;font-weight:800;margin-bottom:6px; color: #fff;}
+  #totalPL {font-size:22px;}
+  .signal {padding:16px;border-radius:14px;text-align:center;
+    font-weight:700;font-size:16px;white-space:pre-line;
+    transition: background 0.5s;
+  }
+  canvas {width:100%!important;background:transparent; border-radius:10px;}
+  #miniChartWrap { cursor: pointer; height: 260px; }
+  
+  footer {
+    margin-top:24px;font-size:13px;color:var(--muted);text-align:center;
+    max-width: 1100px;
+    width: 100%;
+  }
+  .ct-watermark {
+    pointer-events:none; position:fixed; right:14px; bottom:14px;
+    opacity:0.07; font-weight:900; font-size:20px; color:#fff; z-index:9999;
+    user-select:none; mix-blend-mode:overlay; -webkit-text-stroke:0.1px rgba(0,0,0,0.2);
+  }
+  .ct-overlay {
+    display:none; position:fixed; inset:0; background:linear-gradient(180deg, rgba(2,2,2,0.9), rgba(20,20,20,0.95));
+    z-index:10000; color:#fff; align-items:center; justify-content:center; text-align:center; padding:20px;
+  }
+  .ct-overlay.show { display:flex; animation: ctfade 0.18s ease; }
+  .ct-overlay h2 { margin:0 0 8px 0; font-size:20px; }
+  .ct-overlay p { margin:0; color:#ffd9c7; }
+  @keyframes ctfade { from {opacity:0} to {opacity:1} }
+  
+  .controls { display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap; }
+  .muted { color:var(--muted); font-size:13px; }
+
+  #toast {
+    position: fixed; bottom: -100px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: var(--bg);
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    z-index: 1500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: bottom 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    will-change: transform, opacity;
+  }
+  #toast.show { bottom: 20px; }
+  #toast.error { background: var(--red); color: #000; }
+  
+  .fs-modal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(2,6,10,0.65); backdrop-filter: blur(10px);
+    z-index: 1200; padding: 16px;
+    will-change: transform, opacity;
+  }
+  .fs-content {
+    position: relative; width: 100%; max-width: 1000px; height: 92vh;
+    background: linear-gradient(180deg, rgba(8,12,18,0.9), rgba(10,14,20,0.95));
+    border-radius: 14px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .fs-topbar {
+    position: absolute; top: 12px; left: 12px; right: 12px; display:flex; gap:8px; align-items:center;
+    z-index: 10; pointer-events: auto;
+  }
+  .fs-topbar .coinSelectModal {
+    min-width: 140px; max-width: 35%;
+    background: rgba(255,255,255,0.04); padding:8px;border-radius:10px; font-weight:700;
+    color: var(--dbe6f1);
+  }
+  .tabs {
+    display:flex; gap:8px; margin-left:4px; flex-wrap:wrap;
+    background: rgba(0,0,0,0.15); padding:6px; border-radius:10px;
+  }
+  .tab {
+    padding:8px 10px; border-radius:10px; font-weight:700; font-size:14px;
+    background: rgba(255,255,255,0.03); cursor:pointer;
+  }
+  .tab.active { background: rgba(0,194,168,0.12); color: var(--accent); }
+  .fs-close {
+    margin-left:auto; background: rgba(255,255,255,0.04); border-radius:10px; padding:6px 10px;
+    cursor:pointer; font-weight:800;
+  }
+  #fsSpinner {
+    width:36px; height:36px; border-radius:50%; border:4px solid rgba(255,255,255,0.08); border-top-color: var(--accent);
+    animation: spin 1s linear infinite; margin-left:12px;
+  }
+  .fs-body { flex:1; display:flex; flex-direction:column; align-items:stretch; justify-content:center; padding:56px 12px 12px 12px; }
+  #fsChartDateRange { text-align:right; padding-right:10px; height: 16px; margin-bottom: 4px; }
+  .fs-canvas-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:8px; width:100%; }
+  .fs-canvas {
+    width: 100%; height:100%; max-height:calc(100% - 40px); background: transparent;
+  }
+  .indicator-panel { width:100%; max-height:140px; margin-top:8px; border-radius:10px; padding:8px; background: rgba(255,255,255,0.03); }
+
+  @media (max-width:600px) {
+    body { padding: 8px; }
+    .card { padding: 16px; }
+    header { padding: 8px; border-bottom: none; }
+    #logoutBtn { padding: 6px 10px; font-size: 13px; }
+    .fs-content { height: 96vh; padding-top: 6px; }
+    .fs-topbar { top: 8px; left: 8px; right: 8px; }
+    .fs-body { padding: 48px 8px 8px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="appLoader">
+  <div class="spinner"></div>
+  <div>Verifying session...</div>
+</div>
+
+<header>
+  <div>
+    <h1>CoinNAI</h1>
+    <div class="tagline">Smart Portfolio • AI Signals • INR — Demo</div>
+  </div>
+  <!-- MODIFIED: Changed to an <a> link to logout.html -->
+  <a href="logout.html" id="logoutBtn" title="Logout">Logout</a>
+</header>
+
+<div class="ct-watermark">CoinNAI — Demo</div>
+<div id="ctOverlay" class="ct-overlay" aria-hidden="true">
+  <div>
+    <h2>Protected Demo — Display Blocked</h2>
+    <p>This demo is for testing only. Screenshots and copying are discouraged. Contact owner for access.</p>
+  </div>
+</div>
+
+<div class="dashboard-grid" id="mainContent" style="display: none;">
+  <div class="card">
+    <label for="coinSearch">1. Choose Coin (search or select)</label>
+    <input id="coinSearch" placeholder="Search coin (bitcoin, ethereum...)" autocomplete="off" autocorrect="off" autocapitalize="none"/>
+    <select id="coinSelect" size="6" aria-label="Select coin"></select>
+    <div class="small" style="margin-top:4px;">Data: CoinGecko (INR accurate, real-time)</div>
+    
+    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+    
+    <label>2. Add / Update Holding</label>
+    <div class="row" style="margin-top:0;">
+      <div class="col"><input id="amount" placeholder="Amount (e.g. 0.005)" inputmode="decimal" style="margin-top:10px;"/></div>
+      <div class="col"><input id="buyPrice" placeholder="Buy price per unit (INR)" inputmode="decimal" style="margin-top:10px;"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><button id="addBtn">Add / Update</button></div>
+      <div class="col"><button id="removeBtn" class="remove">Remove Selected</button></div>
+    </div>
+    <div class="small" style="margin-top:10px;">Holdings are stored locally in your browser.</div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div class="small">Portfolio Value (INR)</div>
+        <div id="totalVal">₹0</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="small">Unrealised P/L</div>
+        <div id="totalPL">₹0</div>
+      </div>
+    </div>
+    <div class="portfolio-list" id="portfolio">
+      <div class="small">No holdings added yet.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>AI Signal (SMA crossover)</label>
+    <div id="signalBox" class="signal">Select a coin to compute signal</div>
+    <div class="small">Signal based on 7-day & 30-day SMA crossover</div>
+  </div>
+
+  <div class="card" id="chartContainer">
+    <label id="chartTitle">Price Chart + SMA (30 days) — Tap to open</label>
+    <div id="miniChartWrap">
+      <canvas id="priceChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card" id="taxCard">
+    <label>India Crypto Tax Estimator</label>
+    <div class="small">Enter expected sell price per unit (INR) to compute tax (30% on gains)</div>
+    <input id="sellPrice" placeholder="Expected sell price per unit (INR)" inputmode="decimal"/>
+    <div class="row" style="margin-top:10px;">
+      <div class="col"><button id="calcTax">Calculate Tax</button></div>
+      <div class="col"><button id="downloadLogs">Download Logs (JSON)</button></div>
+    </div>
+    <div class="controls">
+      <button id="clearLogs">Clear Logs</button>
+      <button id="openMail">Share Logs</button>
+      <div class="muted">Logs stored locally; include userAgent & timestamps.</div>
+    </div>
+    <div id="taxResult" class="small" style="margin-top:10px;"></div>
+  </div>
+
+</div> 
+<footer id="footer" style="display: none;">
+  <div class="small">Private Demo — do not reuse without permission. Contact: <strong id="ownerEmail">DEMO_OWNER_EMAIL</strong></div>
+  <div style="margin-top:8px;font-size:12px;color:#ffd9c7;">Note- THIS IS FOR THE DEMO IF IT IS SUCCESS WE WILL LUNCH.</div>
+</footer>
+
+<div id="toast"></div>
+
+<div class="fs-modal" id="fsModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="fs-content" role="document">
+    <div class="fs-topbar" aria-hidden="false">
+      <select id="modalCoinSelect" class="coinSelectModal"></select>
+      <div class="tabs" id="indicatorTabs" role="tablist">
+        <div class="tab active" data-tab="price" role="tab" aria-selected="true">Price + SMA</div>
+        <div class="tab" data-tab="candle" role="tab" aria-selected="false">Candle</div>
+        <div class="tab" data-tab="rsi" role="tab" aria-selected="false">RSI</div>
+        <div class="tab" data-tab="macd" role="tab" aria-selected="false">MACD</div>
+      </div>
+      <div class="fs-close" id="fsClose" title="Close fullscreen">✕</div>
+      <div id="fsSpinner" class="spinner" style="display:none;"></div>
+    </div>
+    <div class="fs-body">
+      <div id="fsChartDateRange" class="small"></div>
+      <div class="fs-canvas-wrap">
+        <canvas id="fsLineChart" class="fs-canvas"></canvas>
+        <canvas id="fsCandleChart" class="fs-canvas" style="display:none;"></canvas>
+      </div>
+      <div id="rsiPanel" class="indicator-panel" style="display:none;">
+        <div class="small">RSI (14)</div>
+        <canvas id="rsiChart" style="height:110px;width:100%;"></canvas>
+      </div>
+      <div id="macdPanel" class="indicator-panel" style="display:none;">
+        <div class="small">MACD (12,26,9)</div>
+        <canvas id="macdChart" style="height:110px;width:100%;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+/* -------------------------
+   Firebase Auth
+   ------------------------- */
+import { initializeApp as initializeFirebaseApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { 
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCYUpLjTSMQ-OvTexCymlLmfIw2KAn5rn8",
+  authDomain: "coinnai.firebaseapp.com",
+  projectId: "coinnai",
+  storageBucket: "coinnai.firebasestorage.app",
+  messagingSenderId: "619889316892",
+  appId: "1:619889316892:web:b19240bbafa08fdd327bd9"
+};
+
+const app = initializeFirebaseApp(firebaseConfig);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('mainContent').style.display = 'grid';
+    document.getElementById('footer').style.display = 'block';
+    // --- THIS IS THE FIX ---
+    startApp(); // Calls the renamed function
+  } else {
+    window.location.href = "index.html";
+  }
+});
+
+/* -------------------------
+   Configuration
+   ------------------------- */
+const DEMO_OWNER_EMAIL = 'kalanivraj8@gmail.com';
+document.getElementById('ownerEmail').textContent = DEMO_OWNER_EMAIL;
+
+/* -------------------------
+   UI elements
+   ------------------------- */
+const coinSelect = document.getElementById('coinSelect');
+const coinSearch = document.getElementById('coinSearch');
+const addBtn = document.getElementById('addBtn');
+const removeBtn = document.getElementById('removeBtn');
+const amountIn = document.getElementById('amount');
+const buyPriceIn = document.getElementById('buyPrice');
+const portfolioDiv = document.getElementById('portfolio');
+const totalVal = document.getElementById('totalVal');
+const totalPL = document.getElementById('totalPL');
+const signalBox = document.getElementById('signalBox');
+const sellPriceIn = document.getElementById('sellPrice');
+const calcTaxBtn = document.getElementById('calcTax');
+const taxResult = document.getElementById('taxResult');
+const chartContainer = document.getElementById('chartContainer');
+const priceChartCanvas = document.getElementById('priceChart');
+const miniChartWrap = document.getElementById('miniChartWrap');
+const chartTitle = document.getElementById('chartTitle');
+const ctOverlay = document.getElementById('ctOverlay');
+const downloadLogsBtn = document.getElementById('downloadLogs');
+const clearLogsBtn = document.getElementById('clearLogs');
+const openMailBtn = document.getElementById('openMail');
+const appLoader = document.getElementById('appLoader');
+const toast = document.getElementById('toast');
+// const logoutBtn = document.getElementById('logoutBtn'); // No longer needed, it's a link
+let toastTimeout = null;
+
+const fsModal = document.getElementById('fsModal');
+const fsClose = document.getElementById('fsClose');
+const modalCoinSelect = document.getElementById('modalCoinSelect');
+const indicatorTabs = document.getElementById('indicatorTabs');
+const fsSpinner = document.getElementById('fsSpinner');
+const rsiPanel = document.getElementById('rsiPanel');
+const macdPanel = document.getElementById('macdPanel');
+const fsChartDateRange = document.getElementById('fsChartDateRange');
+const fsLineChartCanvas = document.getElementById('fsLineChart');
+const fsCandleChartCanvas = document.getElementById('fsCandleChart');
+
+/* -------------------------
+   State
+   ------------------------- */
+let coins = [];
+let selectedCoin = null;
+let holdings = JSON.parse(localStorage.getItem('cm_holdings') || '{}');
+let logs = JSON.parse(localStorage.getItem('cm_logs') || '[]');
+let chartInstance = null;
+let fsChart = null;
+let fsCandleChartInstance = null;
+let rsiChart = null;
+let macdChart = null;
+let currentlyActiveTab = 'price';
+
+/* -------------------------
+   Logging
+   ------------------------- */
+function saveLogs() {
+  localStorage.setItem('cm_logs', JSON.stringify(logs.slice(-5000)));
+}
+function logEvent(action, details = {}) {
+  const e = {
+    ts: new Date().toISOString(),
+    action,
+    details,
+    userAgent: navigator.userAgent || '',
+    screen: { width: screen.width, height: screen.height },
+  };
+  logs.push(e);
+  saveLogs();
+}
+
+/* -------------------------
+   Toast & Loader
+   ------------------------- */
+function showToast(message, isError = false) {
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toast.textContent = message;
+  toast.className = 'show' + (isError ? ' error' : '');
+  logEvent('show_toast', { message, isError });
+  toastTimeout = setTimeout(() => {
+    toast.className = '';
+  }, 3000);
+}
+function showLoader(show) {
+  const loaderText = appLoader.querySelector('.spinner + div');
+  if (show) {
+    if (loaderText) loaderText.textContent = 'Loading coin data...';
+    appLoader.style.display = 'flex';
+    appLoader.style.opacity = '1';
+  } else {
+    appLoader.style.opacity = '0';
+    setTimeout(() => { appLoader.style.display = 'none'; }, 500);
+  }
+}
+
+/* -------------------------
+   Helpers
+   ------------------------- */
+function inr(x) {
+  if (isNaN(x)) return '₹0';
+  return '₹' + Number(x).toLocaleString('en-IN', {maximumFractionDigits: 2});
+}
+function formatDate(timestamp) {
+  return new Date(timestamp).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
+}
+
+/* -------------------------
+   Load top coins
+   ------------------------- */
+async function loadCoins() {
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&order=market_cap_desc&per_page=50&page=1&sparkline=false');
+    if (!res.ok) throw new Error('Network response not ok');
+    coins = await res.json();
+    populateSelect(coins);
+    populateModalSelect(coins);
+    logEvent('load_coins', {count: coins.length});
+  } catch (e) {
+    coinSelect.innerHTML = '<option>Unable to load coins — check connection</option>';
+    logEvent('load_coins_error', {message: e.message});
+    showToast('Failed to load coin data. Check connection.', true);
+  }
+}
+function populateSelect(list) {
+  coinSelect.innerHTML = '';
+  if (list.length === 0) {
+    coinSelect.innerHTML = '<option>No coins found</option>';
+    return;
+  }
+  list.forEach(c => {
+    const option = document.createElement('option');
+    option.value = c.id;
+    option.textContent = `${c.name} (${c.symbol.toUpperCase()}) — ${inr(c.current_price)}`;
+    coinSelect.appendChild(option);
+  });
+  if (!selectedCoin && coins.length) {
+    coinSelect.selectedIndex = 0;
+    selectedCoin = coins[0];
+  }
+}
+function populateModalSelect(list) {
+  modalCoinSelect.innerHTML = '';
+  list.forEach(c => {
+    const option = document.createElement('option');
+    option.value = c.id;
+    option.textContent = `${c.name} (${c.symbol.toUpperCase()})`;
+    modalCoinSelect.appendChild(option);
+  });
+  if (selectedCoin) {
+    modalCoinSelect.value = selectedCoin.id;
+  }
+}
+
+coinSearch.addEventListener('input', () => {
+  const query = coinSearch.value.trim().toLowerCase();
+  logEvent('search_coin', { query });
+  if (!query) return populateSelect(coins);
+  const filtered = coins.filter(c => c.name.toLowerCase().includes(query) || c.symbol.toLowerCase().includes(query));
+  populateSelect(filtered);
+});
+
+/* -------------------------
+   Holdings CRUD
+   ------------------------- */
+coinSelect.addEventListener('change', () => {
+  const id = coinSelect.value;
+  selectedCoin = coins.find(c => c.id === id);
+  if (selectedCoin) {
+    modalCoinSelect.value = selectedCoin.id;
+    logEvent('select_coin', {id: selectedCoin.id, name: selectedCoin.name});
+    fetchAISignalAndChart(selectedCoin.id);
+    renderPortfolio();
+  }
+});
+addBtn.addEventListener('click', () => {
+  if (!selectedCoin) return showToast('Select a coin first', true);
+  const amt = parseFloat(amountIn.value);
+  const buy = parseFloat(buyPriceIn.value);
+  if (!amt || !buy || amt <= 0 || buy <= 0) return showToast('Enter valid positive amount & buy price', true);
+  
+  holdings[selectedCoin.id] = {
+    id: selectedCoin.id, name: selectedCoin.name,
+    symbol: selectedCoin.symbol, amount: amt, buyPrice: buy,
+  };
+  localStorage.setItem('cm_holdings', JSON.stringify(holdings));
+  amountIn.value = ''; buyPriceIn.value = '';
+  renderPortfolio();
+  logEvent('add_holding', {id: selectedCoin.id, amount: amt, buyPrice: buy});
+  showToast(`Saved holding for ${selectedCoin.name}`);
+});
+removeBtn.addEventListener('click', () => {
+  if (!selectedCoin) return showToast('Select a coin to remove', true);
+  if (holdings[selectedCoin.id]) {
+    delete holdings[selectedCoin.id];
+    localStorage.setItem('cm_holdings', JSON.stringify(holdings));
+    renderPortfolio();
+    logEvent('remove_holding', {id: selectedCoin.id});
+    showToast('Removed holding');
+  } else showToast('No holding for selected coin', true);
+});
+
+/* -------------------------
+   Portfolio Rendering
+   ------------------------- */
+async function renderPortfolio() {
+  portfolioDiv.innerHTML = '';
+  const ids = Object.keys(holdings);
+  if (ids.length === 0) {
+    portfolioDiv.innerHTML = '<div class="small">No holdings added yet.</div>';
+    totalVal.textContent = '₹0'; totalPL.textContent = '₹0';
+    return;
+  }
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + ids.join(',') + '&vs_currencies=inr');
+    if (!res.ok) throw new Error('Price fetch failed');
+    const prices = await res.json();
+    let totalValue = 0, totalPLValue = 0;
+    ids.forEach(id => {
+      const h = holdings[id];
+      const price = prices[id] ? prices[id].inr : 0;
+      const currentPrice = price > 0 ? price : h.buyPrice;
+      const val = h.amount * currentPrice;
+      const cost = h.amount * h.buyPrice;
+      const pl = val - cost;
+      totalValue += val; totalPLValue += pl;
+      const div = document.createElement('div');
+      div.className = 'asset';
+      div.innerHTML = `<div>
+        <div>${h.name} (${h.symbol.toUpperCase()})</div>
+        <div class="small">Amt: ${h.amount} • Buy: ${inr(h.buyPrice)} • Now: ${inr(currentPrice)}</div>
+        </div>
+        <div style="text-align:right">
+          <div>${inr(val)}</div>
+          <div class="${pl >= 0 ? 'green' : 'red'}">${pl >= 0 ? '+' : ''}${inr(pl)}</div>
+        </div>`;
+      portfolioDiv.appendChild(div);
+    });
+    totalVal.textContent = inr(totalValue);
+    totalPL.textContent = (totalPLValue >= 0 ? '+' : '') + inr(totalPLValue);
+  } catch (e) {
+    portfolioDiv.innerHTML = '<div class="red small">Live price fetch error</div>';
+    logEvent('render_portfolio_error', {message: e.message});
+  }
+}
+
+/* -------------------------
+   SMA & Charting
+   ------------------------- */
+function getSMAArr(prices, period) {
+  let sma = [];
+  for (let i = period - 1; i < prices.length; i++) {
+    let sum = 0;
+    for (let j = i - period + 1; j <= i; j++) sum += prices[j].price;
+    sma.push(sum / period);
+  }
+  return sma;
+}
+
+async function fetchAISignalAndChart(id) {
+  signalBox.textContent = 'Fetching 30-day price data...';
+  chartContainer.style.opacity = 0.6;
+  try {
+    const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=inr&days=30`);
+    if (!res.ok) throw new Error('Chart data fetch failed');
+    const json = await res.json();
+    const prices = (json.prices || []).map(p => ({timestamp: p[0], price: p[1]}));
+    const sma7 = getSMAArr(prices, 7);
+    const sma30 = getSMAArr(prices, 30);
+    if (!sma7.length || !sma30.length) {
+      signalBox.textContent = 'Not enough historical data for signal';
+      signalBox.style.background = 'rgba(100,100,100,0.3)';
+      chartContainer.style.opacity = 1;
+      logEvent('sma_insufficient', {id});
+      return;
+    }
+    const lastSMA7 = sma7[sma7.length - 1], lastSMA30 = sma30[sma30.length - 1];
+    let bullish = lastSMA7 > lastSMA30, crossover = null;
+    if (sma7.length > 1 && sma30.length > 1) {
+      let prevBullish = sma7[sma7.length-2] > sma30[sma30.length-2];
+      if (!prevBullish && bullish) crossover = 'BUY Signal (Bullish crossover)';
+      if (prevBullish && !bullish) crossover = 'SELL Signal (Bearish crossover)';
+    }
+    signalBox.textContent = crossover || (bullish ? 'Bullish (SMA7 > SMA30)' : 'Bearish (SMA7 ≤ SMA30)');
+    signalBox.style.background = bullish ? 'linear-gradient(90deg,#023b2b,#007b63)' : 'linear-gradient(90deg,#3b130d,#611419)';
+    
+    showMiniChart(prices, sma7, sma30);
+    logEvent('view_signal', {id, signal: signalBox.textContent});
+  } catch (e) {
+    signalBox.textContent = 'Failed to fetch chart data';
+    signalBox.style.background = 'rgba(100,100,100,0.3)';
+    chartContainer.style.opacity = 1;
+    logEvent('sma_error', {message: e.message, id});
+  }
+}
+
+function showMiniChart(prices, sma7Arr, sma30Arr) {
+  chartContainer.style.display = 'block';
+  chartContainer.style.opacity = 1;
+  const labels = prices.map(p => new Date(p.timestamp).toLocaleDateString());
+  const data = prices.map(p => p.price);
+  const sma7Data = Array(prices.length - sma7Arr.length).fill(null).concat(sma7Arr);
+  const sma30Data = Array(prices.length - sma30Arr.length).fill(null).concat(sma30Arr);
+
+  const coinName = (selectedCoin && selectedCoin.name) ? selectedCoin.name : 'Coin';
+  chartTitle.textContent = `${coinName} Price (INR) — Tap to open`;
+
+  if (chartInstance) chartInstance.destroy();
+  
+  chartInstance = new Chart(priceChartCanvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: `${coinName} Price (INR)`, data: data,
+          borderColor: '#00c2a8', backgroundColor: 'rgba(0,194,168,0.08)',
+          pointRadius: 0, borderWidth: 2, tension: 0.2, fill: true },
+        { label: 'SMA 7', data: sma7Data, borderColor: '#7ef3c9',
+          borderWidth: 2, pointRadius: 0, fill: false, tension: 0.2 },
+        { label: 'SMA 30', data: sma30Data, borderColor: '#ffa6a6',
+          borderWidth: 2, pointRadius: 0, fill: false, tension: 0.2 }
+      ]
+    },
+    options: {
+      animation: { duration: 0 }, responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { display: false },
+        y: { beginAtZero: false, ticks: { callback: v => '₹'+v.toLocaleString('en-IN') } }
+      },
+      plugins: { legend: { display:false } }
+    }
+  });
+}
+
+/* -------------------------
+   Fullscreen Chart Functions
+   ------------------------- */
+function destroyIfExists(chart) {
+  if (chart) {
+    try { chart.destroy(); } catch (e) {}
+  }
+}
+function showFsChart(prices, sma7Arr, sma30Arr) {
+  const labels = prices.map(p => new Date(p.timestamp).toLocaleString());
+  const data = prices.map(p => p.price);
+  const sma7Data = Array(prices.length - sma7Arr.length).fill(null).concat(sma7Arr);
+  const sma30Data = Array(prices.length - sma30Arr.length).fill(null).concat(sma30Arr);
+  destroyIfExists(fsChart);
+  const ctx = fsLineChartCanvas.getContext('2d');
+  fsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: (selectedCoin?.name || 'Price') + ' Price (INR)', data: data,
+          borderColor: '#00c2a8', backgroundColor: 'rgba(0,194,168,0.06)',
+          pointRadius: 0, borderWidth: 2, tension: 0.2, fill: true },
+        { label: 'SMA 7', data: sma7Data, borderColor: '#7ef3c9', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.2 },
+        { label: 'SMA 30', data: sma30Data, borderColor: '#ffa6a6', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.2 }
+      ]
+    },
+    options: {
+      animation: { duration: 0 }, responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#dbe6f1' } } },
+      scales: {
+        x: { display: false, grid: { color: 'rgba(255,255,255,0.02)' } },
+        y: { beginAtZero: false, ticks: { callback: v => '₹'+v.toLocaleString('en-IN') }, grid: { color: 'rgba(255,255,255,0.02)' } }
+      }
+    }
+  });
+}
+function calcRSI(values, period = 14) {
+  let deltas = [];
+  for (let i = 1; i < values.length; i++) deltas.push(values[i] - values[i-1]);
+  let seed = deltas.slice(0, period);
+  let up = 0, down = 0;
+  seed.forEach(d => { if (d >= 0) up += d; else down += Math.abs(d); });
+  up /= period; down /= period;
+  let rs = up / (down || 1e-10);
+  let rsi = [100 - (100 / (1 + rs))];
+  for (let i = period; i < deltas.length; i++) {
+    const d = deltas[i];
+    if (d >= 0) { up = (up * (period - 1) + d) / period; down = (down * (period - 1)) / period; }
+    else { up = (up * (period - 1)) / period; down = (down * (period - 1) + Math.abs(d)) / period; }
+    rs = up / (down || 1e-10);
+    rsi.push(100 - (100 / (1 + rs)));
+  }
+  return [ ...Array(period).fill(null) ].concat(rsi);
+}
+function drawRSI(prices) {
+  const vals = prices.map(p => p.price);
+  const rsiArr = calcRSI(vals, 14);
+  destroyIfExists(rsiChart);
+  const ctx = document.getElementById('rsiChart').getContext('2d');
+  rsiChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: prices.map(p => new Date(p.timestamp).toLocaleTimeString()),
+      datasets: [ { label: 'RSI', data: rsiArr, borderColor: '#f1c40f', pointRadius: 0, borderWidth: 2, fill: false } ]
+    },
+    options: { animation: { duration: 0 }, responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } }, plugins: { legend: { display: false } } }
+  });
+}
+function ema(values, period) {
+  const k = 2 / (period + 1);
+  let emaArr = [];
+  let prev = values.slice(0, period).reduce((a,b) => a+b,0) / period;
+  emaArr[period - 1] = prev;
+  for (let i = period; i < values.length; i++) {
+    prev = (values[i] - prev) * k + prev;
+    emaArr[i] = prev;
+  }
+  return emaArr;
+}
+function calcMACD(values, fast = 12, slow = 26, signal = 9) {
+  const emaFast = ema(values, fast);
+  const emaSlow = ema(values, slow);
+  let macd = [];
+  for (let i = 0; i < values.length; i++) {
+    macd.push((emaFast[i] !== undefined && emaSlow[i] !== undefined) ? (emaFast[i] - emaSlow[i]) : null);
+  }
+  const macdFiltered = macd.map(v => v === null ? 0 : v);
+  const signalLineFull = ema(macdFiltered, signal);
+  let histogram = [];
+  for (let i = 0; i < values.length; i++) {
+    histogram.push((macd[i] !== undefined && signalLineFull[i] !== undefined) ? (macd[i] - signalLineFull[i]) : null);
+  }
+  return { macd, signalLine: signalLineFull, histogram };
+}
+function drawMACD(prices) {
+  const vals = prices.map(p => p.price);
+  const { macd, signalLine, histogram } = calcMACD(vals, 12, 26, 9);
+  destroyIfExists(macdChart);
+  const ctx = document.getElementById('macdChart').getContext('2d');
+  macdChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: prices.map(p => new Date(p.timestamp).toLocaleTimeString()),
+      datasets: [
+        { type: 'line', label: 'MACD', data: macd, borderColor: '#00c2a8', pointRadius: 0, borderWidth: 2, fill: false },
+        { type: 'line', label: 'Signal', data: signalLine, borderColor: '#ffa6a6', pointRadius: 0, borderWidth: 2, fill: false },
+        { type: 'bar', label: 'Histogram', data: histogram, backgroundColor: (ctx) => ctx.raw >= 0 ? 'rgba(126,243,201,0.8)' : 'rgba(255,166,166,0.8)', borderRadius: 2 }
+      ]
+    },
+    options: { animation: { duration: 0 }, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { stacked: false }, y: { beginAtZero: false } } }
+  });
+}
+function drawCandlestickChart(ohlcData) {
+  destroyIfExists(fsCandleChartInstance);
+  const ctx = fsCandleChartCanvas.getContext('2d');
+  fsCandleChartInstance = new Chart(ctx, {
+    type: 'candlestick',
+    data: {
+      datasets: [{
+        label: (selectedCoin?.name || 'Price') + ' OHLC (INR)',
+        data: ohlcData,
+        color: { up: 'rgba(126, 243, 201, 0.8)', down: 'rgba(255, 166, 166, 0.8)', unchanged: 'rgba(160, 175, 199, 0.8)' }
+      }]
+    },
+    options: {
+      animation: { duration: 0 }, responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { adapter: 'luxon', time: { unit: 'day' }, grid: { color: 'rgba(255,255,255,0.02)' } },
+        y: { beginAtZero: false, ticks: { callback: v => '₹'+v.toLocaleString('en-IN') }, grid: { color: 'rgba(255,255,255,0.02)' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+/* -------------------------
+   Fullscreen Modal Controls
+   ------------------------- */
+miniChartWrap.addEventListener('click', openFullscreenModal);
+
+function openFullscreenModal() {
+  if (!selectedCoin) return showToast('Select a coin first', true);
+  logEvent('open_fullscreen_chart', { id: selectedCoin.id });
+  fsModal.style.display = 'flex';
+  fsModal.setAttribute('aria-hidden', 'false');
+  modalCoinSelect.value = selectedCoin.id;
+  openFSForCoin(selectedCoin.id);
+  document.body.style.overflow = 'hidden';
+}
+fsClose.addEventListener('click', closeFullscreenModal);
+fsModal.addEventListener('click', (e) => {
+  if (e.target === fsModal) closeFullscreenModal();
+});
+function closeFullscreenModal() {
+  fsModal.style.display = 'none';
+  fsModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  fsSpinner.style.display = 'none';
+  fsChartDateRange.textContent = '';
+  logEvent('close_fullscreen_chart', {});
+}
+modalCoinSelect.addEventListener('change', () => {
+  const id = modalCoinSelect.value;
+  const optionIndex = Array.from(coinSelect.options).findIndex(opt => opt.value === id);
+  if (optionIndex >= 0) coinSelect.selectedIndex = optionIndex;
+  selectedCoin = coins.find(c => c.id === id);
+  
+  logEvent('select_coin_modal', { id: selectedCoin.id });
+  fetchAISignalAndChart(id);
+  renderPortfolio();
+  openFSForCoin(id);
+});
+indicatorTabs.addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  const tabName = tab.getAttribute('data-tab');
+  logEvent('select_chart_tab', { tab: tabName });
+  setActiveTab(tabName);
+});
+function setActiveTab(tabName) {
+  currentlyActiveTab = tabName;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const el = document.querySelector(`.tab[data-tab="${tabName}"]`);
+  if (el) el.classList.add('active');
+
+  rsiPanel.style.display = 'none';
+  macdPanel.style.display = 'none';
+  fsLineChartCanvas.style.display = 'none';
+  fsCandleChartCanvas.style.display = 'none';
+
+  if (tabName === 'price') {
+    fsLineChartCanvas.style.display = 'block';
+  } else if (tabName === 'rsi') {
+    fsLineChartCanvas.style.display = 'block';
+    rsiPanel.style.display = 'block';
+  } else if (tabName === 'macd') {
+    fsLineChartCanvas.style.display = 'block';
+    macdPanel.style.display = 'block';
+  } else if (tabName === 'candle') {
+    fsCandleChartCanvas.style.display = 'block';
+  }
+}
+async function openFSForCoin(id) {
+  fsSpinner.style.display = 'inline-block';
+  setActiveTab(currentlyActiveTab || 'price');
+  fsChartDateRange.textContent = '';
+  
+  try {
+    const lineChartUrl = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=inr&days=30`;
+    const ohlcChartUrl = `https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=inr&days=30`;
+
+    const [lineRes, ohlcRes] = await Promise.all([
+      fetch(lineChartUrl),
+      fetch(ohlcChartUrl)
+    ]);
+    if (!lineRes.ok || !ohlcRes.ok) throw new Error('Failed to fetch chart data');
+
+    const lineJson = await lineRes.json();
+    const ohlcJson = await ohlcRes.json();
+
+    const prices = lineJson.prices.map(p => ({timestamp: p[0], price: p[1]}));
+    const sma7 = getSMAArr(prices, 7);
+    const sma30 = getSMAArr(prices, 30);
+    
+    showFsChart(prices, sma7, sma30);
+    drawRSI(prices);
+    drawMACD(prices);
+    
+    const startDate = formatDate(prices[0].timestamp);
+    const endDate = formatDate(prices[prices.length - 1].timestamp);
+    fsChartDateRange.textContent = `Range: ${startDate} - ${endDate}`;
+
+    const ohlcData = ohlcJson.map(d => ({ 
+      x: d[0], o: d[1], h: d[2], l: d[3], c: d[4]
+    }));
+    drawCandlestickChart(ohlcData);
+    logEvent('load_fullscreen_data_success', { id });
+  } catch (e) {
+    destroyIfExists(fsChart);
+    const ctx = fsLineChartCanvas.getContext('2d');
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = '#fff'; ctx.font = '16px sans-serif';
+    ctx.fillText('Failed to load chart data', 20, 40);
+    fsChartDateRange.textContent = 'Error loading data';
+    logEvent('load_fullscreen_data_error', { id, message: e.message });
+  } finally {
+    fsSpinner.style.display = 'none';
+  }
+}
+
+/* -------------------------
+   Tax calc
+   ------------------------- */
+calcTaxBtn.addEventListener('click', () => {
+  if (!selectedCoin) return showToast('Select a coin and add holding first', true);
+  const sellPrice = parseFloat(sellPriceIn.value);
+  if (isNaN(sellPrice) || sellPrice <= 0) return showToast('Enter a valid expected sell price', true);
+  const holding = holdings[selectedCoin.id];
+  if (!holding) return showToast('No holding for selected coin', true);
+  
+  const gainPerUnit = sellPrice - holding.buyPrice;
+  const totalGain = gainPerUnit * holding.amount;
+  const tax = totalGain > 0 ? totalGain * 0.3 : 0;
+  taxResult.textContent = `Total Gain: ${inr(totalGain)} | Est. Tax (30%): ${inr(tax)}`;
+  logEvent('tax_calc', {id: selectedCoin.id, sellPrice, totalGain, tax});
+});
+
+/* -------------------------
+   Logging controls
+   ------------------------- */
+downloadLogsBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(logs, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `coinai_demo_logs_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'_')}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  logEvent('download_logs', {count: logs.length});
+});
+clearLogsBtn.addEventListener('click', () => {
+  if (!confirm('Clear local logs? This cannot be undone.')) return;
+  logs = [];
+  saveLogs();
+  logEvent('clear_logs', {});
+  showToast('Logs cleared locally.');
+});
+openMailBtn.addEventListener('click', () => {
+  const subject = encodeURIComponent('CoinNAI Demo Logs');
+  const bodyHeader = encodeURIComponent('Attached are the demo logs. I will attach the JSON file exported from the page.');
+  const mailto = `mailto:${DEMO_OWNER_EMAIL}?subject=${subject}&body=${bodyHeader}`;
+  window.location.href = mailto;
+  logEvent('open_mail', {to: DEMO_OWNER_EMAIL});
+});
+
+/* -------------------------
+   Security Features
+   ------------------------- */
+function showOverlayTemporarily(durationMs = 2800) {
+  ctOverlay.classList.add('show');
+  ctOverlay.setAttribute('aria-hidden', 'false');
+  setTimeout(() => {
+    ctOverlay.classList.remove('show');
+    ctOverlay.setAttribute('aria-hidden', 'true');
+  }, durationMs);
+}
+document.addEventListener('contextmenu', e => { e.preventDefault(); logEvent('contextmenu_blocked', {}); showOverlayTemporarily(1600); });
+document.addEventListener('selectstart', e => { e.preventDefault(); logEvent('selectstart_blocked', {}); });
+document.addEventListener('keydown', e => {
+  const key = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && ['u','s','c','a','p'].includes(key)) {
+    e.preventDefault();
+    logEvent('shortcut_blocked', {key});
+    showOverlayTemporarily(1600);
+    return false;
+  }
+  if (e.key === 'PrintScreen' || e.key === 'PrintScrn') {
+    e.preventDefault();
+    logEvent('printscreen_attempt', {});
+    showOverlayTemporarily(2200);
+    return false;
+  }
+  if ((e.metaKey && e.shiftKey && e.key === '4') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's')) {
+    e.preventDefault();
+    logEvent('screenshot_combo_attempt', {key: e.key});
+    showOverlayTemporarily(2200);
+    return false;
+  }
+});
+['copy','cut','paste'].forEach(ev => {
+  document.addEventListener(ev, function(e) {
+    e.preventDefault();
+    logEvent(ev + '_blocked', {});
+    showOverlayTemporarily(1600);
+  });
+});
+async function tryClearClipboard() {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText('');
+      logEvent('clipboard_cleared', {});
+    } catch (err) {
+      logEvent('clipboard_clear_failed', {message: err && err.message});
+    }
+  }
+}
+function handleBeforePrint() {
+  logEvent('before_print', {});
+  tryClearClipboard();
+  showOverlayTemporarily(3000);
+  ctOverlay.classList.add('show');
+}
+function handleAfterPrint() {
+  logEvent('after_print', {});
+  ctOverlay.classList.remove('show');
+}
+if (window.matchMedia) {
+  window.addEventListener('beforeprint', handleBeforePrint);
+  window.addEventListener('afterprint', handleAfterPrint);
+}
+let lastBlur = 0;
+window.addEventListener('blur', () => { lastBlur = Date.now(); logEvent('window_blur', {}); });
+window.addEventListener('focus', () => {
+  const dt = Date.now() - lastBlur;
+  if (dt > 500 && dt < 20000) {
+    logEvent('window_focus_after_blur', {blurMs: dt});
+    tryClearClipboard();
+    showOverlayTemporarily(1600);
+  }
+});
+
+/* -------------------------
+   Init (Called by Auth Guard)
+   ------------------------- */
+// --- THIS IS THE FIX ---
+async function startApp() {
+  showLoader(true);
+  
+  // No listener needed for logout, it's a direct link now
+  
+  await loadCoins();
+  if (selectedCoin) {
+    await fetchAISignalAndChart(selectedCoin.id);
+  }
+  await renderPortfolio();
+  
+  showLoader(false);
+  logEvent('page_load_complete', {});
+}
+
+setInterval(() => {
+  if (fsModal.style.display === 'none') {
+    if (selectedCoin) fetchAISignalAndChart(selectedCoin.id);
+    renderPortfolio();
+  }
+}, 60000);
+</script>
+</body>
+</html>

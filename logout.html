@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging Out - CoinNAI</title>
+    <style>
+        :root {
+            --bg: #0d1523;
+            --accent: #00c2a8;
+        }
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(180deg, #001018, #0d1523);
+            color: #dbe6f1;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.08);
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        div {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <div>Logging you out...</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYUpLjTSMQ-OvTexCymlLmfIw2KAn5rn8",
+            authDomain: "coinnai.firebaseapp.com",
+            projectId: "coinnai",
+            storageBucket: "coinnai.firebasestorage.app",
+            messagingSenderId: "619889316892",
+            appId: "1:619889316892:web:b19240bbafa08fdd327bd9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // When this page loads, sign the user out
+        signOut(auth).then(() => {
+            // Sign-out successful.
+            // Redirect to the login page.
+            window.location.href = "index.html";
+        }).catch((error) => {
+            // An error happened.
+            console.error("Logout Error:", error);
+            // Still redirect to login page
+            window.location.href = "index.html";
+        });
+    </script>
+</body>
+</html>
