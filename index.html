@@ -402,12 +402,10 @@ const firebaseConfig = {
 const app = initializeFirebaseApp(firebaseConfig);
 const auth = getAuth(app);
 
-// ***FIX: Auth Guard***
-// If user is not logged in, redirect to login.html
-// If they are, set their UID and start the app
+// Auth Guard: Redirects to login if no user
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    userUID = user.uid; // <-- Set the user's UID
+    userUID = user.uid; // Set the user's UID
     document.getElementById('mainContent').style.display = 'grid';
     document.getElementById('footer').style.display = 'block';
     startApp(); // Start the app
@@ -465,11 +463,11 @@ const fsCandleChartCanvas = document.getElementById('fsCandleChart');
 /* -------------------------
    State
    ------------------------- */
-let userUID = null; // <-- Set by Auth Guard
+let userUID = null; // Set by Auth Guard
 let coins = [];
 let selectedCoin = null;
-let holdings = {}; // <-- Loaded in startApp
-let logs = [];     // <-- Loaded in startApp
+let holdings = {}; // Loaded in startApp
+let logs = [];     // Loaded in startApp
 let chartInstance = null;
 let fsChart = null;
 let fsCandleChartInstance = null;
@@ -1029,7 +1027,6 @@ async function openFSForCoin(id) {
     ctx.textAlign = 'center';
     
     // --- ***FIX: Improved Error Message*** ---
-    // This will now show the *real* error, not my "rate limit" guess.
     ctx.fillText(e.message, ctx.canvas.width / 2, 40);
     if (e.message.includes("429") || e.message.includes("Too Many Requests")) {
         ctx.fillText("(CoinGecko rate limit. Wait 1 min.)", ctx.canvas.width / 2, 60);
@@ -1092,6 +1089,7 @@ openMailBtn.addEventListener('click', () => {
 /* -------------------------
    Security Features
    ------------------------- */
+// ... (All security features remain the same) ...
 function showOverlayTemporarily(durationMs = 2800) {
   ctOverlay.classList.add('show');
   ctOverlay.setAttribute('aria-hidden', 'false');
@@ -1165,6 +1163,7 @@ window.addEventListener('focus', () => {
   }
 });
 
+
 /* -------------------------
    Init (Called by Auth Guard)
    ------------------------- */
@@ -1188,25 +1187,13 @@ async function startApp() {
   logEvent('page_load_complete', {});
 }
 
-// --- FIX: Changed interval to 5 minutes (300000 ms
-// --- FIX: Changed interval to 5 minutes (300000 ms) to avoid rate limit
-
+// --- Slower interval (5 minutes) to avoid rate limit ---
 setInterval(() => {
-
-{
-
-if (fsModal.style.display === 'none')
-
-// Only refresh if modal is closed if (selectedCoin)
-
-fetchAISignalAndChart(selectedCoin.id); renderPortfolio();
-
-}
-
-}, 300000);
-
+  if (fsModal.style.display === 'none') { // Only refresh if modal is closed
+    if (selectedCoin) fetchAISignalAndChart(selectedCoin.id);
+    renderPortfolio();
+  }
+}, 300000); 
 </script>
-
 </body>
-
 </html>
