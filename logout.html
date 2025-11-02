@@ -1,75 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logging Out - CoinNAI</title>
-    <style>
-        :root {
-            --bg: #0d1523;
-            --accent: #00c2a8;
-        }
-        body, html {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(180deg, #001018, #0d1523);
-            color: #dbe6f1;
-        }
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 4px solid rgba(255, 255, 255, 0.08);
-            border-top-color: var(--accent);
-            animation: spin 1s linear infinite;
-            margin-bottom: 12px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        div {
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--accent);
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Logout — CoinNAI</title>
+<style>
+  :root {
+    --bg: #0d1523;
+    --accent: #00c2a8;
+  }
+  * {box-sizing:border-box;}
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, #001018, #0d1523);
+    color: #dbe6f1;
+    margin: 0; padding: 16px; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  #loader {
+    text-align: center;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .spinner {
+    width:36px; height:36px; border-radius:50%;
+    border:4px solid rgba(255,255,255,0.08);
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite; margin: 0 auto 12px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
-    <div class="spinner"></div>
-    <div>Logging you out...</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+<div id="loader">
+  <div class="spinner"></div>
+  <div>Logging out...</div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCYUpLjTSMQ-OvTexCymlLmfIw2KAn5rn8",
-            authDomain: "coinnai.firebaseapp.com",
-            projectId: "coinnai",
-            storageBucket: "coinnai.firebasestorage.app",
-            messagingSenderId: "619889316892",
-            appId: "1:619889316892:web:b19240bbafa08fdd327bd9"
-        };
+<script type"module">
+  // --- Firebase SDK ---
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+  // --- SAME Firebase Config as index.html ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyCYUpLjTSMQ-OvTexCymlLmfIw2KAn5rn8",
+    authDomain: "coinnai.firebaseapp.com",
+    projectId: "coinnai",
+    storageBucket: "coinnai.firebasestorage.app",
+    messagingSenderId: "619889316892",
+    appId: "1:619889316892:web:b19240bbafa08fdd327bd9"
+  };
 
-        // When this page loads, sign the user out
-        signOut(auth).then(() => {
-            // Sign-out successful.
-            // Redirect to the login page.
-            window.location.href = "auth.html"; // <-- ★★★ FIX #1 ★★★
-        }).catch((error) => {
-            // An error happened.
-            console.error("Logout Error:", error);
-            // Still redirect to login page
-            window.location.href = "auth.html"; // <-- ★★★ FIX #2 ★★★
-        });
-    </script>
+  // --- Init Firebase ---
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // --- Sign Out Logic ---
+  async function performLogout() {
+    try {
+      await signOut(auth);
+      // Success. Redirect to login page.
+      window.location.href = "login.html";
+    } catch (error) {
+      // Handle errors
+      console.error("Logout Error:", error);
+      document.getElementById('loader').textContent = "Error logging out. Please go to login page.";
+      // Still redirect, as user is likely in a broken state
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 2000);
+    }
+  }
+
+  // Run logout as soon as the page loads
+  performLogout();
+</script>
 </body>
 </html>
