@@ -4,112 +4,625 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Login — CoinNAI</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
     --bg: #0d1523;
-    --card-bg: linear-gradient(170deg, rgba(22, 38, 65, 0.8), rgba(15, 28, 48, 0.85));
-    --muted: #a0afc7;
+    --card-bg: #162641;
     --accent: #00c2a8;
-    --red: #ffa6a6;
-    --shadow: rgba(0, 194, 168, 0.2);
+    --accent-dark: #009e89;
+    --green: #7ef3c9;
+    --muted: #a0afc7;
+    --text: #dbe6f1;
+    --border: rgba(255, 255, 255, 0.1);
+    --red: #ff6b6b;
+    --yellow: #ffd166;
+    --purple: #9d4edd;
   }
-  * {box-sizing:border-box;}
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
   body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: linear-gradient(180deg, #001018, #0d1523);
-    color: #dbe6f1;
-    margin: 0; padding: 16px; min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    line-height: 1.5;
+    position: relative;
+    overflow-x: hidden;
   }
-  h1 {
+  
+  /* Animated background elements */
+  .bg-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+  }
+  
+  .shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.05;
+    animation: float 15s infinite ease-in-out;
+  }
+  
+  .shape-1 {
+    width: 300px;
+    height: 300px;
+    background: var(--accent);
+    top: -100px;
+    left: -100px;
+    animation-delay: 0s;
+  }
+  
+  .shape-2 {
+    width: 200px;
+    height: 200px;
+    background: var(--purple);
+    bottom: -50px;
+    right: 10%;
+    animation-delay: 3s;
+  }
+  
+  .shape-3 {
+    width: 150px;
+    height: 150px;
+    background: var(--yellow);
+    top: 20%;
+    right: -50px;
+    animation-delay: 6s;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+  }
+  
+  .login-container {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    display: grid;
+    position: relative;
+    backdrop-filter: blur(10px);
+  }
+  
+  @media (min-width: 768px) {
+    .login-container {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  /* Left Panel (Promo) */
+  .promo-panel {
+    padding: 40px;
+    background: linear-gradient(170deg, rgba(22, 38, 65, 0.9), rgba(15, 28, 48, 0.95));
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .promo-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 194, 168, 0.1) 0%, rgba(126, 243, 201, 0.05) 100%);
+    z-index: 0;
+  }
+  
+  .promo-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: var(--bg);
+    font-weight: bold;
+  }
+  
+  .promo-panel h2 {
+    font-size: 28px;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: var(--accent);
-    margin-bottom: 8px;
+    margin: 0 0 12px 0;
   }
-  .card {
-    width: 100%; max-width: 400px;
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border-radius:14px; padding:24px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.25), 0 0 8px var(--shadow);
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-  label {font-weight:600;font-size:13px;color:var(--muted); display: block; margin-bottom: 4px; margin-top: 16px;}
-  input, button {
-    width: 100%; padding: 12px 14px;
-    border-radius:10px; border: 1px solid rgba(255,255,255,0.08);
-    background:rgba(255,255,255,0.05);
-    color:#dbe6f1; font-weight:600;
-    margin-top:10px; font-size:15px;
-    transition: all 0.25s;
-  }
-  input:focus {
-    outline:none;
-    background:rgba(0,194,168,0.15);
-    border-color: var(--accent);
-  }
-  button {
-    cursor: pointer; background: var(--accent); border:none; color: var(--bg);
-    font-weight: 700;
-  }
-  button:hover {background:#03b899; box-shadow: 0 0 10px var(--shadow);}
-  button.secondary {
-    background: transparent;
-    border: 1px solid var(--muted);
+  
+  .promo-panel .tagline {
+    font-size: 16px;
     color: var(--muted);
+    margin-bottom: 30px;
   }
-  button.secondary:hover { background: rgba(255,255,255,0.05); box-shadow: none; }
-  .row { display:flex; gap:14px; margin-top:14px;}
-  .col {flex:1;}
+  
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .feature-list li {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    color: var(--text);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .feature-list li:hover {
+    transform: translateX(5px);
+    border-bottom-color: rgba(0, 194, 168, 0.3);
+  }
+  
+  .feature-list .icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+  
+  /* Right Panel (Login Form) */
+  .login-panel {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+  
+  .login-panel h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: var(--text);
+    position: relative;
+    display: inline-block;
+  }
+  
+  .login-panel h1::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  
+  .login-panel .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  
+  /* Form Inputs with Icons */
+  .input-group {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .input-group .icon {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    pointer-events: none;
+    transition: color 0.3s;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.3s;
+  }
+  
+  .input-field:focus {
+    outline: none;
+    background: rgba(0, 194, 168, 0.08);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 194, 168, 0.2);
+  }
+  
+  .input-field:focus + .icon {
+    color: var(--accent);
+  }
+  
+  .input-field::placeholder {
+    color: var(--muted);
+    opacity: 0.7;
+  }
+  
+  .password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  
+  .password-toggle:hover {
+    color: var(--accent);
+  }
+  
+  /* Form Options */
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  
+  .remember-me input {
+    accent-color: var(--accent);
+  }
+  
+  .forgot-password {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+  
+  .forgot-password:hover {
+    text-decoration: underline;
+  }
+  
+  /* Buttons */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn:hover::before {
+    left: 100%;
+  }
+  
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  
+  .btn-primary:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 194, 168, 0.3);
+  }
+  
+  .btn-google {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    border-color: var(--border);
+    margin-top: 16px;
+  }
+  
+  .btn-google:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-google .icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Other */
+  .separator {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .separator::before,
+  .separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  
+  .separator a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .separator a:hover {
+    text-decoration: underline;
+    color: var(--green);
+  }
+  
   #errorMsg {
     color: var(--red);
-    background: rgba(255,100,100,0.1);
-    padding: 10px;
+    background: rgba(255, 100, 100, 0.1);
+    padding: 12px 14px;
     border-radius: 8px;
     border: 1px solid var(--red);
     font-weight: 600;
     text-align: center;
     margin-top: 16px;
-    display: none; /* Hidden by default */
+    font-size: 14px;
+    display: none;
+    animation: shake 0.5s ease-in-out;
   }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+  
+  /* Loader */
   #loader {
-    display: none; /* Hidden by default */
+    display: none;
     text-align: center;
     padding: 20px;
     color: var(--accent);
     font-weight: 700;
   }
+  
   .spinner {
-    width:24px; height:24px; border-radius:50%;
-    border:3px solid rgba(255,255,255,0.08);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.08);
     border-top-color: var(--accent);
-    animation: spin 1s linear infinite; margin: 0 auto 10px auto;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px auto;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Success Message */
+  .success-message {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    color: var(--green);
+    font-weight: 700;
+  }
+  
+  .success-message .icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: var(--green);
+  }
+  
+  /* Hide promo panel on mobile */
+  @media (max-width: 767px) {
+    .promo-panel {
+      display: none;
+    }
+    
+    .login-panel {
+      padding: 30px 20px;
+    }
+    
+    .form-options {
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+  }
+  
+  /* Password strength indicator */
+  .password-strength {
+    margin-top: 5px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+    display: none;
+  }
+  
+  .password-strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s;
+    border-radius: 2px;
+  }
+  
+  .strength-weak {
+    background: var(--red);
+    width: 33%;
+  }
+  
+  .strength-medium {
+    background: var(--yellow);
+    width: 66%;
+  }
+  
+  .strength-strong {
+    background: var(--green);
+    width: 100%;
+  }
 </style>
 </head>
 <body>
 
-<h1>CoinNAI</h1>
-<div class="card">
-  <div id="authForm">
-    <label for="email">Email</label>
-    <input id="email" type="email" placeholder="user@example.com" />
-    
-    <label for="password">Password</label>
-    <input id="password" type="password" placeholder="••••••••" />
-    
-    <div id="errorMsg"></div>
+<div class="bg-shapes">
+  <div class="shape shape-1"></div>
+  <div class="shape shape-2"></div>
+  <div class="shape shape-3"></div>
+</div>
 
-    <div class="row">
-      <div class="col"><button id="loginBtn">Login</button></div>
-      <div class="col"><button id="registerBtn" class="secondary">Register</button></div>
+<div class="login-container">
+  
+  <div class="promo-panel">
+    <div class="promo-content">
+      <div class="logo">
+        <div class="logo-icon">C</div>
+        <h2>CoinNAI</h2>
+      </div>
+      <div class="tagline">Your all-in-one crypto tool for India.</div>
+      <ul class="feature-list">
+        <li>
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          Smart Portfolio Tracking
+        </li>
+        <li>
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          AI-Powered SMA Signals
+        </li>
+        <li>
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          Indian Tax Calculation
+        </li>
+        <li>
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          Advanced Charting (Candle, RSI, MACD)
+        </li>
+      </ul>
     </div>
   </div>
-  <div id="loader">
-    <div class="spinner"></div>
-    <div>Checking session...</div>
+  
+  <div class="login-panel">
+    
+    <div id="authForm">
+      <h1 id="formTitle">Login</h1>
+      <div class="subtitle">Smart Portfolio + AI Signals</div>
+      
+      <div class="input-group">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path></svg>
+        <input class="input-field" id="email" type="email" placeholder="Email" />
+      </div>
+      
+      <div class="input-group">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <input class="input-field" id="password" type="password" placeholder="Password" />
+        <button class="password-toggle" id="passwordToggle">
+          <i class="fas fa-eye"></i>
+        </button>
+        <div class="password-strength" id="passwordStrength">
+          <div class="password-strength-bar" id="passwordStrengthBar"></div>
+        </div>
+      </div>
+      
+      <div class="form-options">
+        <label class="remember-me">
+          <input type="checkbox" id="rememberMe">
+          Remember me
+        </label>
+        <a href="#" class="forgot-password" id="forgotPassword">Forgot password?</a>
+      </div>
+      
+      <div id="errorMsg"></div>
+      
+      <button id="submitBtn" class="btn btn-primary">Login</button>
+      
+      <button id="googleBtn" class="btn btn-google">
+        <svg class="icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v8.51h12.8c-.59 2.97-2.27 5.48-4.54 7.19l7.98 6.19C45.33 36.61 48 31.01 48 24c0-.66-.05-1.3-.15-1.94z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.98-6.19c-2.11 1.45-4.79 2.3-7.91 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
+        Continue with Google
+      </button>
+
+      <div class="separator">
+        <span id="promptText">Don't have an account?</span>
+        <a id="toggleBtn">Register</a>
+      </div>
+    </div>
+    
+    <div id="loader">
+      <div class="spinner"></div>
+      <div>Checking session...</div>
+    </div>
+    
+    <div id="successMessage" class="success-message">
+      <i class="fas fa-check-circle icon"></i>
+      <div>Success! Redirecting...</div>
+    </div>
+    
   </div>
 </div>
 
@@ -120,7 +633,10 @@
     getAuth,
     onAuthStateChanged,
     signInWithEmailAndPassword,
-    createUserWithEmailAndPassword
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+    sendPasswordResetEmail
   } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
   // --- SAME Firebase Config as index.html ---
@@ -136,85 +652,203 @@
   // --- Init Firebase ---
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
 
   // --- UI Elements ---
-  const loginBtn = document.getElementById('loginBtn');
-  const registerBtn = document.getElementById('registerBtn');
   const emailIn = document.getElementById('email');
   const passwordIn = document.getElementById('password');
+  const passwordToggle = document.getElementById('passwordToggle');
+  const passwordStrength = document.getElementById('passwordStrength');
+  const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+  const rememberMe = document.getElementById('rememberMe');
+  const forgotPassword = document.getElementById('forgotPassword');
   const errorMsg = document.getElementById('errorMsg');
   const authForm = document.getElementById('authForm');
   const loader = document.getElementById('loader');
+  const successMessage = document.getElementById('successMessage');
+  
+  const submitBtn = document.getElementById('submitBtn');
+  const googleBtn = document.getElementById('googleBtn');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const formTitle = document.getElementById('formTitle');
+  const promptText = document.getElementById('promptText');
+
+  let isLoginMode = true;
 
   // --- Show/Hide Helpers ---
-  function showLoader(isLoading) {
+  function showLoader(isLoading, message = "Checking session...") {
+    loader.querySelector('div + div').textContent = message;
     loader.style.display = isLoading ? 'block' : 'none';
     authForm.style.display = isLoading ? 'none' : 'block';
+    successMessage.style.display = 'none';
   }
+  
+  function showSuccess(isSuccess, message = "Success! Redirecting...") {
+    successMessage.querySelector('div').textContent = message;
+    successMessage.style.display = isSuccess ? 'block' : 'none';
+    authForm.style.display = isSuccess ? 'none' : 'block';
+    loader.style.display = 'none';
+  }
+  
   function showError(message) {
     errorMsg.textContent = message;
     errorMsg.style.display = 'block';
   }
+  
+  function hideError() {
+    errorMsg.style.display = 'none';
+  }
+
+  // --- Password Visibility Toggle ---
+  passwordToggle.addEventListener('click', () => {
+    const type = passwordIn.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordIn.setAttribute('type', type);
+    passwordToggle.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+  });
+
+  // --- Password Strength Indicator ---
+  passwordIn.addEventListener('input', () => {
+    const password = passwordIn.value;
+    
+    if (password.length === 0) {
+      passwordStrength.style.display = 'none';
+      return;
+    }
+    
+    passwordStrength.style.display = 'block';
+    
+    // Simple password strength calculation
+    let strength = 0;
+    if (password.length >= 6) strength += 1;
+    if (password.length >= 8) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    
+    // Update strength bar
+    passwordStrengthBar.className = 'password-strength-bar';
+    if (strength <= 2) {
+      passwordStrengthBar.classList.add('strength-weak');
+    } else if (strength <= 4) {
+      passwordStrengthBar.classList.add('strength-medium');
+    } else {
+      passwordStrengthBar.classList.add('strength-strong');
+    }
+  });
+
+  // --- Forgot Password ---
+  forgotPassword.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = emailIn.value;
+    
+    if (!email) {
+      showError("Please enter your email to reset password.");
+      return;
+    }
+    
+    showLoader(true, "Sending reset email...");
+    
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showLoader(false);
+      showSuccess(true, "Password reset email sent! Check your inbox.");
+      setTimeout(() => {
+        showSuccess(false);
+      }, 3000);
+    } catch (error) {
+      showLoader(false);
+      showError(error.message);
+    }
+  });
 
   // --- Auth Guard ---
   // If user is already logged in, redirect to index.html
-  // If not, show the login form.
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // User is logged in
-      loader.querySelector('div + div').textContent = 'Success! Redirecting...';
-      showLoader(true);
-      window.location.href = "index.html"; // Redirect to main app
+      showSuccess(true, "Success! Redirecting...");
+      setTimeout(() => {
+        window.location.href = "index.html"; // Redirect to main app
+      }, 1500);
     } else {
-      // User is logged out
       showLoader(false); // Show the login form
     }
   });
-
-  // --- Login Button ---
-  loginBtn.addEventListener('click', async () => {
-    const email = emailIn.value;
-    const password = passwordIn.value;
-    if (!email || !password) {
-      showError("Please enter both email and password.");
-      return;
-    }
-    
-    errorMsg.style.display = 'none';
-    showLoader(true);
-    loader.querySelector('div + div').textContent = 'Logging in...';
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Success. onAuthStateChanged listener will handle the redirect.
-    } catch (error) {
-      showLoader(false);
-      showError(error.message); // Show Firebase error
+  
+  // --- Toggle between Login and Register ---
+  toggleBtn.addEventListener('click', () => {
+    isLoginMode = !isLoginMode;
+    hideError();
+    if (isLoginMode) {
+      formTitle.textContent = "Login";
+      submitBtn.textContent = "Login";
+      promptText.textContent = "Don't have an account?";
+      toggleBtn.textContent = "Register";
+      passwordStrength.style.display = 'none';
+    } else {
+      formTitle.textContent = "Register";
+      submitBtn.textContent = "Register";
+      promptText.textContent = "Already have an account?";
+      toggleBtn.textContent = "Login";
     }
   });
 
-  // --- Register Button ---
-  registerBtn.addEventListener('click', async () => {
+  // --- Email/Password Submit Button ---
+  submitBtn.addEventListener('click', async () => {
     const email = emailIn.value;
     const password = passwordIn.value;
-    if (!email || password.length < 6) {
-      showError("Please enter email and a password (min. 6 chars).");
-      return;
-    }
     
-    errorMsg.style.display = 'none';
-    showLoader(true);
-    loader.querySelector('div + div').textContent = 'Creating account...';
-
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      // Success. onAuthStateChanged listener will handle the redirect.
-    } catch (error) {
-      showLoader(false);
-      showError(error.message); // Show Firebase error (e.g., email-in-use)
+    if (!email) return showError("Please enter your email.");
+    if (password.length < 6) return showError("Password must be at least 6 characters.");
+    
+    hideError();
+    
+    if (isLoginMode) {
+      // --- Handle Login ---
+      showLoader(true, "Logging in...");
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // Success. onAuthStateChanged listener will handle redirect.
+      } catch (error) {
+        showLoader(false);
+        showError(error.message);
+      }
+    } else {
+      // --- Handle Register ---
+      showLoader(true, "Creating account...");
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        // Success. onAuthStateChanged listener will handle redirect.
+      } catch (error) {
+        showLoader(false);
+        showError(error.message);
+      }
     }
   });
 
+  // --- Google Sign-in Button ---
+  googleBtn.addEventListener('click', async () => {
+    hideError();
+    showLoader(true, "Opening Google Sign-in...");
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // Success. onAuthStateChanged listener will handle redirect.
+    } catch (error) {
+      showLoader(false);
+      showError(error.message);
+    }
+  });
+
+  // --- Enter key to submit form ---
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      submitBtn.click();
+    }
+  });
+
+  // --- Focus on email field on page load ---
+  window.addEventListener('load', () => {
+    emailIn.focus();
+  });
 </script>
 </body>
 </html>
