@@ -703,7 +703,7 @@ async function fetchAISignalAndChart(id) {
   chartContainer.style.opacity = 0.6;
   try {
     const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=inr&days=30`);
-    if (!res.ok) throw new Error(`Chart data fetch failed: ${res.statusText}`); // <-- FIX: Show status
+    if (!res.ok) throw new Error(`Chart data fetch failed: ${res.statusText}`); 
     const json = await res.json();
     const prices = (json.prices || []).map(p => ({timestamp: p[0], price: p[1]}));
     const sma7 = getSMAArr(prices, 7);
@@ -728,7 +728,7 @@ async function fetchAISignalAndChart(id) {
     showMiniChart(prices, sma7, sma30);
     logEvent('view_signal', {id, signal: signalBox.textContent});
   } catch (e) {
-    signalBox.textContent = e.message; // <-- FIX: Show specific error
+    signalBox.textContent = e.message; 
     signalBox.style.background = 'rgba(100,100,100,0.3)';
     chartContainer.style.opacity = 1;
     logEvent('sma_error', {message: e.message, id});
@@ -998,7 +998,6 @@ async function openFSForCoin(id) {
       fetch(ohlcChartUrl)
     ]);
     
-    // --- FIX: Better error checking ---
     if (!lineRes.ok) throw new Error(`Line chart error: ${lineRes.statusText}`);
     if (!ohlcRes.ok) throw new Error(`OHLC chart error: ${ohlcRes.statusText}`);
 
@@ -1029,9 +1028,12 @@ async function openFSForCoin(id) {
     ctx.font = '14px sans-serif';
     ctx.textAlign = 'center';
     
-    // --- FIX: Show the specific error message ---
+    // --- ***FIX: Improved Error Message*** ---
+    // This will now show the *real* error, not my "rate limit" guess.
     ctx.fillText(e.message, ctx.canvas.width / 2, 40);
-    ctx.fillText("(Likely CoinGecko rate limit. Wait 1 min.)", ctx.canvas.width / 2, 60);
+    if (e.message.includes("429") || e.message.includes("Too Many Requests")) {
+        ctx.fillText("(CoinGecko rate limit. Wait 1 min.)", ctx.canvas.width / 2, 60);
+    }
     
     fsChartDateRange.textContent = 'Error loading data';
     logEvent('load_fullscreen_data_error', { id, message: e.message });
@@ -1186,13 +1188,25 @@ async function startApp() {
   logEvent('page_load_complete', {});
 }
 
-// --- FIX: Changed interval to 5 minutes (300000 ms) to avoid rate limit ---
+// --- FIX: Changed interval to 5 minutes (300000 ms
+// --- FIX: Changed interval to 5 minutes (300000 ms) to avoid rate limit
+
 setInterval(() => {
-  if (fsModal.style.display === 'none') { // Only refresh if modal is closed
-    if (selectedCoin) fetchAISignalAndChart(selectedCoin.id);
-    renderPortfolio();
-  }
-}, 300000); 
+
+{
+
+if (fsModal.style.display === 'none')
+
+// Only refresh if modal is closed if (selectedCoin)
+
+fetchAISignalAndChart(selectedCoin.id); renderPortfolio();
+
+}
+
+}, 300000);
+
 </script>
+
 </body>
+
 </html>
