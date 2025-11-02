@@ -4,105 +4,38 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Login — CoinNAI</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
     --bg: #0d1523;
-    --card-bg: #162641;
+    --card-bg: #162641; /* Solid color for the card */
     --accent: #00c2a8;
-    --accent-dark: #009e89;
     --green: #7ef3c9;
     --muted: #a0afc7;
     --text: #dbe6f1;
     --border: rgba(255, 255, 255, 0.1);
-    --red: #ff6b6b;
-    --yellow: #ffd166;
-    --purple: #9d4edd;
   }
-  
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  
+  * {box-sizing:border-box;}
   body {
-    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
+    margin: 0;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 16px;
-    line-height: 1.5;
-    position: relative;
-    overflow-x: hidden;
   }
-  
-  /* Animated background elements */
-  .bg-shapes {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    overflow: hidden;
-  }
-  
-  .shape {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0.05;
-    animation: float 15s infinite ease-in-out;
-  }
-  
-  .shape-1 {
-    width: 300px;
-    height: 300px;
-    background: var(--accent);
-    top: -100px;
-    left: -100px;
-    animation-delay: 0s;
-  }
-  
-  .shape-2 {
-    width: 200px;
-    height: 200px;
-    background: var(--purple);
-    bottom: -50px;
-    right: 10%;
-    animation-delay: 3s;
-  }
-  
-  .shape-3 {
-    width: 150px;
-    height: 150px;
-    background: var(--yellow);
-    top: 20%;
-    right: -50px;
-    animation-delay: 6s;
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(10deg); }
-  }
-  
   .login-container {
     width: 100%;
     max-width: 900px;
     background: var(--card-bg);
-    border-radius: 16px;
+    border-radius: 14px;
     overflow: hidden;
     border: 1px solid var(--border);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
     display: grid;
-    position: relative;
-    backdrop-filter: blur(10px);
   }
-  
   @media (min-width: 768px) {
     .login-container {
       grid-template-columns: 1fr 1fr;
@@ -112,65 +45,24 @@
   /* Left Panel (Promo) */
   .promo-panel {
     padding: 40px;
-    background: linear-gradient(170deg, rgba(22, 38, 65, 0.9), rgba(15, 28, 48, 0.95));
-    position: relative;
-    overflow: hidden;
+    background: linear-gradient(170deg, rgba(22, 38, 65, 0.8), rgba(15, 28, 48, 0.85));
   }
-  
-  .promo-panel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(0, 194, 168, 0.1) 0%, rgba(126, 243, 201, 0.05) 100%);
-    z-index: 0;
-  }
-  
-  .promo-content {
-    position: relative;
-    z-index: 1;
-  }
-  
-  .logo {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .logo-icon {
-    width: 32px;
-    height: 32px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-    color: var(--bg);
-    font-weight: bold;
-  }
-  
   .promo-panel h2 {
     font-size: 28px;
     font-weight: 700;
     letter-spacing: 0.1em;
     margin: 0 0 12px 0;
   }
-  
   .promo-panel .tagline {
     font-size: 16px;
     color: var(--muted);
     margin-bottom: 30px;
   }
-  
   .feature-list {
     list-style: none;
     padding: 0;
     margin: 0;
   }
-  
   .feature-list li {
     display: flex;
     align-items: center;
@@ -178,22 +70,12 @@
     font-weight: 500;
     margin-bottom: 16px;
     color: var(--text);
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
   }
-  
-  .feature-list li:hover {
-    transform: translateX(5px);
-    border-bottom-color: rgba(0, 194, 168, 0.3);
-  }
-  
   .feature-list .icon {
     width: 20px;
     height: 20px;
     margin-right: 12px;
     color: var(--green);
-    flex-shrink: 0;
   }
   
   /* Right Panel (Login Form) */
@@ -202,29 +84,13 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    position: relative;
   }
-  
   .login-panel h1 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     color: var(--text);
-    position: relative;
-    display: inline-block;
   }
-  
-  .login-panel h1::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 40px;
-    height: 3px;
-    background: var(--accent);
-    border-radius: 2px;
-  }
-  
   .login-panel .subtitle {
     font-size: 15px;
     color: var(--muted);
@@ -234,9 +100,8 @@
   /* Form Inputs with Icons */
   .input-group {
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
-  
   .input-group .icon {
     position: absolute;
     top: 50%;
@@ -246,326 +111,132 @@
     height: 18px;
     color: var(--muted);
     pointer-events: none;
-    transition: color 0.3s;
   }
-  
   .input-field {
     width: 100%;
-    padding: 14px 14px 14px 44px;
+    padding: 12px 14px 12px 44px; /* Space for icon */
     border-radius: 10px;
     border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255,255,255,0.05);
     color: var(--text);
-    font-weight: 500;
+    font-weight: 600;
     font-size: 15px;
-    transition: all 0.3s;
+    transition: all 0.25s;
   }
-  
   .input-field:focus {
     outline: none;
-    background: rgba(0, 194, 168, 0.08);
+    background: rgba(0,194,168,0.1);
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(0, 194, 168, 0.2);
-  }
-  
-  .input-field:focus + .icon {
-    color: var(--accent);
-  }
-  
-  .input-field::placeholder {
-    color: var(--muted);
-    opacity: 0.7;
-  }
-  
-  .password-toggle {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    transition: color 0.3s;
-  }
-  
-  .password-toggle:hover {
-    color: var(--accent);
-  }
-  
-  /* Form Options */
-  .form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
-  
-  .remember-me {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--muted);
-    cursor: pointer;
-  }
-  
-  .remember-me input {
-    accent-color: var(--accent);
-  }
-  
-  .forgot-password {
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s;
-  }
-  
-  .forgot-password:hover {
-    text-decoration: underline;
   }
   
   /* Buttons */
   .btn {
     width: 100%;
-    padding: 14px;
+    padding: 12px 14px;
     border-radius: 10px;
     border: 1px solid transparent;
     font-weight: 700;
     font-size: 15px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.25s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    position: relative;
-    overflow: hidden;
   }
-  
-  .btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-  }
-  
-  .btn:hover::before {
-    left: 100%;
-  }
-  
   .btn-primary {
     background: var(--accent);
     color: var(--bg);
+    margin-top: 10px;
   }
-  
-  .btn-primary:hover {
-    background: var(--accent-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 194, 168, 0.3);
-  }
+  .btn-primary:hover { background: #03b899; }
   
   .btn-google {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255,255,255,0.05);
     color: var(--text);
     border-color: var(--border);
     margin-top: 16px;
   }
-  
-  .btn-google:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .btn-google .icon {
-    width: 18px;
-    height: 18px;
-  }
-  
+  .btn-google:hover { background: rgba(255,255,255,0.1); }
+  .btn-google .icon { width: 18px; height: 18px; }
+
   /* Other */
   .separator {
     font-size: 13px;
     color: var(--muted);
     text-align: center;
     margin-top: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
   }
-  
-  .separator::before,
-  .separator::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-  
   .separator a {
     color: var(--accent);
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.3s;
   }
-  
-  .separator a:hover {
-    text-decoration: underline;
-    color: var(--green);
-  }
-  
+  .separator a:hover { text-decoration: underline; }
+
   #errorMsg {
     color: var(--red);
-    background: rgba(255, 100, 100, 0.1);
-    padding: 12px 14px;
+    background: rgba(255,100,100,0.1);
+    padding: 10px 14px;
     border-radius: 8px;
     border: 1px solid var(--red);
     font-weight: 600;
     text-align: center;
     margin-top: 16px;
     font-size: 14px;
-    display: none;
-    animation: shake 0.5s ease-in-out;
+    display: none; /* Hidden by default */
   }
-  
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
-  }
-  
+
   /* Loader */
   #loader {
-    display: none;
+    display: none; /* Hidden by default */
     text-align: center;
     padding: 20px;
     color: var(--accent);
     font-weight: 700;
   }
-  
   .spinner {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.08);
+    width:24px; height:24px; border-radius:50%;
+    border:3px solid rgba(255,255,255,0.08);
     border-top-color: var(--accent);
-    animation: spin 1s linear infinite;
-    margin: 0 auto 10px auto;
+    animation: spin 1s linear infinite; margin: 0 auto 10px auto;
   }
-  
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
-  /* Success Message */
-  .success-message {
-    display: none;
-    text-align: center;
-    padding: 20px;
-    color: var(--green);
-    font-weight: 700;
-  }
-  
-  .success-message .icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-    color: var(--green);
-  }
+  @keyframes spin { to { transform: rotate(360deg); } }
   
   /* Hide promo panel on mobile */
   @media (max-width: 767px) {
     .promo-panel {
       display: none;
     }
-    
-    .login-panel {
-      padding: 30px 20px;
-    }
-    
-    .form-options {
-      flex-direction: column;
-      gap: 10px;
-      align-items: flex-start;
-    }
-  }
-  
-  /* Password strength indicator */
-  .password-strength {
-    margin-top: 5px;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--border);
-    overflow: hidden;
-    display: none;
-  }
-  
-  .password-strength-bar {
-    height: 100%;
-    width: 0%;
-    transition: all 0.3s;
-    border-radius: 2px;
-  }
-  
-  .strength-weak {
-    background: var(--red);
-    width: 33%;
-  }
-  
-  .strength-medium {
-    background: var(--yellow);
-    width: 66%;
-  }
-  
-  .strength-strong {
-    background: var(--green);
-    width: 100%;
   }
 </style>
 </head>
 <body>
 
-<div class="bg-shapes">
-  <div class="shape shape-1"></div>
-  <div class="shape shape-2"></div>
-  <div class="shape shape-3"></div>
-</div>
-
 <div class="login-container">
   
   <div class="promo-panel">
-    <div class="promo-content">
-      <div class="logo">
-        <div class="logo-icon">C</div>
-        <h2>CoinNAI</h2>
-      </div>
-      <div class="tagline">Your all-in-one crypto tool for India.</div>
-      <ul class="feature-list">
-        <li>
-          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          Smart Portfolio Tracking
-        </li>
-        <li>
-          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          AI-Powered SMA Signals
-        </li>
-        <li>
-          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          Indian Tax Calculation
-        </li>
-        <li>
-          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          Advanced Charting (Candle, RSI, MACD)
-        </li>
-      </ul>
-    </div>
+    <h2>CoinNAI</h2>
+    <div class="tagline">Your all-in-one crypto tool for India.</div>
+    <ul class="feature-list">
+      <li>
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        Smart Portfolio Tracking
+      </li>
+      <li>
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        AI-Powered SMA Signals
+      </li>
+      <li>
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        Indian Tax Calculation
+      </li>
+      <li>
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        Advanced Charting (Candle, RSI, MACD)
+      </li>
+    </ul>
   </div>
   
   <div class="login-panel">
@@ -582,20 +253,6 @@
       <div class="input-group">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         <input class="input-field" id="password" type="password" placeholder="Password" />
-        <button class="password-toggle" id="passwordToggle">
-          <i class="fas fa-eye"></i>
-        </button>
-        <div class="password-strength" id="passwordStrength">
-          <div class="password-strength-bar" id="passwordStrengthBar"></div>
-        </div>
-      </div>
-      
-      <div class="form-options">
-        <label class="remember-me">
-          <input type="checkbox" id="rememberMe">
-          Remember me
-        </label>
-        <a href="#" class="forgot-password" id="forgotPassword">Forgot password?</a>
       </div>
       
       <div id="errorMsg"></div>
@@ -618,11 +275,6 @@
       <div>Checking session...</div>
     </div>
     
-    <div id="successMessage" class="success-message">
-      <i class="fas fa-check-circle icon"></i>
-      <div>Success! Redirecting...</div>
-    </div>
-    
   </div>
 </div>
 
@@ -635,8 +287,7 @@
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     GoogleAuthProvider,
-    signInWithPopup,
-    sendPasswordResetEmail
+    signInWithPopup
   } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
   // --- SAME Firebase Config as index.html ---
@@ -657,15 +308,9 @@
   // --- UI Elements ---
   const emailIn = document.getElementById('email');
   const passwordIn = document.getElementById('password');
-  const passwordToggle = document.getElementById('passwordToggle');
-  const passwordStrength = document.getElementById('passwordStrength');
-  const passwordStrengthBar = document.getElementById('passwordStrengthBar');
-  const rememberMe = document.getElementById('rememberMe');
-  const forgotPassword = document.getElementById('forgotPassword');
   const errorMsg = document.getElementById('errorMsg');
   const authForm = document.getElementById('authForm');
   const loader = document.getElementById('loader');
-  const successMessage = document.getElementById('successMessage');
   
   const submitBtn = document.getElementById('submitBtn');
   const googleBtn = document.getElementById('googleBtn');
@@ -680,95 +325,21 @@
     loader.querySelector('div + div').textContent = message;
     loader.style.display = isLoading ? 'block' : 'none';
     authForm.style.display = isLoading ? 'none' : 'block';
-    successMessage.style.display = 'none';
   }
-  
-  function showSuccess(isSuccess, message = "Success! Redirecting...") {
-    successMessage.querySelector('div').textContent = message;
-    successMessage.style.display = isSuccess ? 'block' : 'none';
-    authForm.style.display = isSuccess ? 'none' : 'block';
-    loader.style.display = 'none';
-  }
-  
   function showError(message) {
     errorMsg.textContent = message;
     errorMsg.style.display = 'block';
   }
-  
   function hideError() {
     errorMsg.style.display = 'none';
   }
-
-  // --- Password Visibility Toggle ---
-  passwordToggle.addEventListener('click', () => {
-    const type = passwordIn.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordIn.setAttribute('type', type);
-    passwordToggle.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-  });
-
-  // --- Password Strength Indicator ---
-  passwordIn.addEventListener('input', () => {
-    const password = passwordIn.value;
-    
-    if (password.length === 0) {
-      passwordStrength.style.display = 'none';
-      return;
-    }
-    
-    passwordStrength.style.display = 'block';
-    
-    // Simple password strength calculation
-    let strength = 0;
-    if (password.length >= 6) strength += 1;
-    if (password.length >= 8) strength += 1;
-    if (/[A-Z]/.test(password)) strength += 1;
-    if (/[0-9]/.test(password)) strength += 1;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    
-    // Update strength bar
-    passwordStrengthBar.className = 'password-strength-bar';
-    if (strength <= 2) {
-      passwordStrengthBar.classList.add('strength-weak');
-    } else if (strength <= 4) {
-      passwordStrengthBar.classList.add('strength-medium');
-    } else {
-      passwordStrengthBar.classList.add('strength-strong');
-    }
-  });
-
-  // --- Forgot Password ---
-  forgotPassword.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const email = emailIn.value;
-    
-    if (!email) {
-      showError("Please enter your email to reset password.");
-      return;
-    }
-    
-    showLoader(true, "Sending reset email...");
-    
-    try {
-      await sendPasswordResetEmail(auth, email);
-      showLoader(false);
-      showSuccess(true, "Password reset email sent! Check your inbox.");
-      setTimeout(() => {
-        showSuccess(false);
-      }, 3000);
-    } catch (error) {
-      showLoader(false);
-      showError(error.message);
-    }
-  });
 
   // --- Auth Guard ---
   // If user is already logged in, redirect to index.html
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      showSuccess(true, "Success! Redirecting...");
-      setTimeout(() => {
-        window.location.href = "index.html"; // Redirect to main app
-      }, 1500);
+      showLoader(true, "Success! Redirecting...");
+      window.location.href = "index.html"; // Redirect to main app
     } else {
       showLoader(false); // Show the login form
     }
@@ -783,7 +354,6 @@
       submitBtn.textContent = "Login";
       promptText.textContent = "Don't have an account?";
       toggleBtn.textContent = "Register";
-      passwordStrength.style.display = 'none';
     } else {
       formTitle.textContent = "Register";
       submitBtn.textContent = "Register";
@@ -838,17 +408,6 @@
     }
   });
 
-  // --- Enter key to submit form ---
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      submitBtn.click();
-    }
-  });
-
-  // --- Focus on email field on page load ---
-  window.addEventListener('load', () => {
-    emailIn.focus();
-  });
 </script>
 </body>
 </html>
