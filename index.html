@@ -51,16 +51,14 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* --- MODIFIED: Header for Desktop --- */
   header {
     width: 100%; 
-    max-width: 1100px; /* MODIFIED: Wider layout */
+    max-width: 1100px;
     margin-bottom: 18px; user-select: none;
     text-align: left;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* NEW: Cleaner app bar style */
     border-bottom: 1px solid rgba(255,255,255,0.1);
     padding-bottom: 16px;
   }
@@ -70,7 +68,6 @@
   }
   .tagline {font-size: 13px; color: var(--muted); margin-top: 2px;}
   
-  /* MODIFIED: Changed to a link */
   #logoutBtn {
     background: rgba(255,100,100,0.15);
     color: var(--red);
@@ -81,7 +78,7 @@
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.25s;
-    text-decoration: none; /* As it's an <a> tag now */
+    text-decoration: none;
     display: inline-block;
   }
   #logoutBtn:hover {
@@ -93,7 +90,7 @@
   
   .dashboard-grid {
     width: 100%; 
-    max-width: 1100px; /* MODIFIED: Wider layout */
+    max-width: 1100px;
     display: grid;
     grid-template-columns: 1fr;
     gap: 15px;
@@ -132,7 +129,6 @@
     cursor: pointer; background: var(--accent); border:none; color: var(--bg);
     font-weight: 700;
   }
-  /* MODIFIED: Removed laggy transform */
   button:hover {background:#03b899; box-shadow: 0 0 10px var(--shadow);}
   button.remove {
     background: rgba(255,100,100,0.15);
@@ -391,8 +387,7 @@
 import { initializeApp as initializeFirebaseApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { 
   getAuth,
-  onAuthStateChanged,
-  signOut
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -407,14 +402,17 @@ const firebaseConfig = {
 const app = initializeFirebaseApp(firebaseConfig);
 const auth = getAuth(app);
 
+// ***FIX: Auth Guard***
+// If user is not logged in, redirect to login.html
+// If they are, set their UID and start the app
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    userUID = user.uid; // <-- ***FIX: Set the user's UID***
+    userUID = user.uid; // <-- Set the user's UID
     document.getElementById('mainContent').style.display = 'grid';
     document.getElementById('footer').style.display = 'block';
-    startApp(); // Calls the renamed function
+    startApp(); // Start the app
   } else {
-    // ***FIX: Redirect to a login page, not index.html, to avoid a loop***
+    // No user, redirect to login page
     window.location.href = "login.html"; 
   }
 });
@@ -451,7 +449,6 @@ const clearLogsBtn = document.getElementById('clearLogs');
 const openMailBtn = document.getElementById('openMail');
 const appLoader = document.getElementById('appLoader');
 const toast = document.getElementById('toast');
-// const logoutBtn = document.getElementById('logoutBtn'); // No longer needed, it's a link
 let toastTimeout = null;
 
 const fsModal = document.getElementById('fsModal');
@@ -468,14 +465,11 @@ const fsCandleChartCanvas = document.getElementById('fsCandleChart');
 /* -------------------------
    State
    ------------------------- */
-let userUID = null; // <-- ***FIX: Added user ID state***
+let userUID = null; // <-- Set by Auth Guard
 let coins = [];
 let selectedCoin = null;
-
-// ***FIX: Initialize as empty, load data in startApp***
-let holdings = {};
-let logs = [];
-
+let holdings = {}; // <-- Loaded in startApp
+let logs = [];     // <-- Loaded in startApp
 let chartInstance = null;
 let fsChart = null;
 let fsCandleChartInstance = null;
@@ -487,9 +481,9 @@ let currentlyActiveTab = 'price';
    Logging
    ------------------------- */
 function saveLogs() {
-  if (!userUID) return; // <-- ***FIX: Add guard***
-  const logsKey = `cm_logs_${userUID}`; // <-- ***FIX: Use user-specific key***
-  localStorage.setItem(logsKey, JSON.stringify(logs.slice(-5000))); // <-- ***FIX: Use user-specific key***
+  if (!userUID) return; // Guard
+  const logsKey = `cm_logs_${userUID}`; // <-- User-specific key
+  localStorage.setItem(logsKey, JSON.stringify(logs.slice(-5000)));
 }
 function logEvent(action, details = {}) {
   const e = {
@@ -619,12 +613,11 @@ addBtn.addEventListener('click', () => {
     symbol: selectedCoin.symbol, amount: amt, buyPrice: buy,
   };
   
-  // --- ***FIX: Use user-specific key*** ---
+  // --- User-specific key ---
   if (userUID) {
     const holdingsKey = `cm_holdings_${userUID}`;
     localStorage.setItem(holdingsKey, JSON.stringify(holdings));
   }
-  // -------------------------------------
   
   amountIn.value = ''; buyPriceIn.value = '';
   renderPortfolio();
@@ -636,12 +629,11 @@ removeBtn.addEventListener('click', () => {
   if (holdings[selectedCoin.id]) {
     delete holdings[selectedCoin.id];
 
-    // --- ***FIX: Use user-specific key*** ---
+    // --- User-specific key ---
     if (userUID) {
       const holdingsKey = `cm_holdings_${userUID}`;
       localStorage.setItem(holdingsKey, JSON.stringify(holdings));
     }
-    // -------------------------------------
 
     renderPortfolio();
     logEvent('remove_holding', {id: selectedCoin.id});
@@ -711,7 +703,7 @@ async function fetchAISignalAndChart(id) {
   chartContainer.style.opacity = 0.6;
   try {
     const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=inr&days=30`);
-    if (!res.ok) throw new Error(`Chart data fetch failed: ${res.statusText}`);
+    if (!res.ok) throw new Error(`Chart data fetch failed: ${res.statusText}`); // <-- FIX: Show status
     const json = await res.json();
     const prices = (json.prices || []).map(p => ({timestamp: p[0], price: p[1]}));
     const sma7 = getSMAArr(prices, 7);
@@ -736,7 +728,7 @@ async function fetchAISignalAndChart(id) {
     showMiniChart(prices, sma7, sma30);
     logEvent('view_signal', {id, signal: signalBox.textContent});
   } catch (e) {
-    signalBox.textContent = e.message; // Show specific error
+    signalBox.textContent = e.message; // <-- FIX: Show specific error
     signalBox.style.background = 'rgba(100,100,100,0.3)';
     chartContainer.style.opacity = 1;
     logEvent('sma_error', {message: e.message, id});
@@ -989,6 +981,14 @@ async function openFSForCoin(id) {
   setActiveTab(currentlyActiveTab || 'price');
   fsChartDateRange.textContent = '';
   
+  // Clear previous chart data to prevent flicker of old data
+  destroyIfExists(fsChart);
+  destroyIfExists(fsCandleChartInstance);
+  const lineCtx = fsLineChartCanvas.getContext('2d');
+  lineCtx.clearRect(0, 0, lineCtx.canvas.width, lineCtx.canvas.height);
+  const candleCtx = fsCandleChartCanvas.getContext('2d');
+  candleCtx.clearRect(0, 0, candleCtx.canvas.width, candleCtx.canvas.height);
+
   try {
     const lineChartUrl = `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=inr&days=30`;
     const ohlcChartUrl = `https://api.coingecko.com/api/v3/coins/${id}/ohlc?vs_currency=inr&days=30`;
@@ -998,10 +998,9 @@ async function openFSForCoin(id) {
       fetch(ohlcChartUrl)
     ]);
     
-    // --- ***FIX: Better error checking*** ---
+    // --- FIX: Better error checking ---
     if (!lineRes.ok) throw new Error(`Line chart error: ${lineRes.statusText}`);
     if (!ohlcRes.ok) throw new Error(`OHLC chart error: ${ohlcRes.statusText}`);
-    // ----------------------------------------
 
     const lineJson = await lineRes.json();
     const ohlcJson = await ohlcRes.json();
@@ -1024,16 +1023,15 @@ async function openFSForCoin(id) {
     drawCandlestickChart(ohlcData);
     logEvent('load_fullscreen_data_success', { id });
   } catch (e) {
-    destroyIfExists(fsChart);
     const ctx = fsLineChartCanvas.getContext('2d');
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = '#ffcccc'; // Use a more visible error color
+    ctx.fillStyle = '#ffcccc';
     ctx.font = '14px sans-serif';
     ctx.textAlign = 'center';
     
-    // --- ***FIX: Show the specific error message*** ---
+    // --- FIX: Show the specific error message ---
     ctx.fillText(e.message, ctx.canvas.width / 2, 40);
-    ctx.fillText("(Likely CoinGecko rate limit)", ctx.canvas.width / 2, 60);
+    ctx.fillText("(Likely CoinGecko rate limit. Wait 1 min.)", ctx.canvas.width / 2, 60);
     
     fsChartDateRange.textContent = 'Error loading data';
     logEvent('load_fullscreen_data_error', { id, message: e.message });
@@ -1171,13 +1169,12 @@ window.addEventListener('focus', () => {
 async function startApp() {
   showLoader(true);
   
-  // --- ***FIX: Load user-specific data*** ---
+  // --- Load user-specific data ---
   const holdingsKey = `cm_holdings_${userUID}`;
   const logsKey = `cm_logs_${userUID}`;
   
   holdings = JSON.parse(localStorage.getItem(holdingsKey) || '{}');
   logs = JSON.parse(localStorage.getItem(logsKey) || '[]');
-  // ---------------------------------------
   
   await loadCoins();
   if (selectedCoin) {
@@ -1189,9 +1186,9 @@ async function startApp() {
   logEvent('page_load_complete', {});
 }
 
-// --- ***FIX: Changed interval to 5 minutes (300000 ms) to avoid rate limit*** ---
+// --- FIX: Changed interval to 5 minutes (300000 ms) to avoid rate limit ---
 setInterval(() => {
-  if (fsModal.style.display === 'none') {
+  if (fsModal.style.display === 'none') { // Only refresh if modal is closed
     if (selectedCoin) fetchAISignalAndChart(selectedCoin.id);
     renderPortfolio();
   }
