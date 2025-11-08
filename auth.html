@@ -22,6 +22,8 @@
     --input-focus: #00c2a8;
     --error-color: #ef5350;
     --error-bg: rgba(239, 83, 80, 0.05);
+    --success-color: #4caf50;
+    --transition-standard: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   * {
     box-sizing: border-box;
@@ -30,25 +32,34 @@
     margin: 0; padding: 0;
     height: 100%;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--bg-gradient);
+    
+    /* --- Reverted to floating background --- */
+    background: linear-gradient(-45deg, var(--bg-color), var(--card-bg), var(--bg-color), var(--card-bg));
+    background-size: 400% 400%;
+    animation: floatBackground 20s ease infinite;
+    
     color: var(--text-color);
     overflow: hidden;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
+  
   #splash {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
-    background-color: var(--bg-color);
+    align-items: center; /* Centering fix */
     user-select: none;
     z-index: 100;
     opacity: 1;
     transition: opacity 0.4s ease-out;
+    
+    /* --- Reverted from glassmorphism --- */
+    background-color: var(--bg-color);
   }
+
   #splash.hidden {
     opacity: 0;
     pointer-events: none;
@@ -61,12 +72,35 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+  }
+  
+  /* --- Keyframes for Floating Background --- */
+  @keyframes floatBackground {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
   #splashTitle {
     font-size: 2.8rem;
     font-weight: 700;
     margin-bottom: 0.4rem;
     animation: fadeIn 0.8s ease-out;
     letter-spacing: 0.1em;
+    background: linear-gradient(90deg, var(--primary-color), #00e6c3, var(--primary-color));
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 3s infinite linear;
   }
   #tagline {
     font-size: 1.1rem;
@@ -90,19 +124,24 @@
     padding: 20px;
   }
   
-  /* --- NEW: Desktop 2-Column Layout --- */
+  /* --- Desktop 2-Column Layout --- */
   .desktop-layout-wrapper {
     display: grid;
     max-width: 900px;
     width: 100%;
-    background: var(--card-bg);
+    
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border: 1px solid var(--input-border);
+    
     overflow: hidden;
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    
+    /* --- Reverted from glassmorphism --- */
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--input-border);
   }
   .desktop-layout-wrapper.visible {
     opacity: 1;
@@ -113,17 +152,38 @@
     display: none; /* Hidden on mobile by default */
     padding: 40px;
     background: linear-gradient(160deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+    position: relative;
+    overflow: hidden;
+  }
+  .welcome-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(0, 194, 168, 0.05), transparent 70%);
+    z-index: 0;
+  }
+  .welcome-panel > * {
+    position: relative;
+    z-index: 1;
   }
   .welcome-panel h1 {
     font-size: 2.5rem;
     letter-spacing: 0.1em;
     text-align: left;
     margin-bottom: 12px;
+    background: linear-gradient(90deg, var(--primary-color), #00e6c3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .welcome-panel .tagline {
     text-align: left;
     font-size: 1.1rem;
     margin-bottom: 30px;
+    color: var(--muted-text);
   }
   .feature-list {
     list-style: none;
@@ -137,6 +197,12 @@
     color: var(--text-color);
     margin-bottom: 18px;
     font-weight: 500;
+    transition: var(--transition-standard);
+    padding: 8px 0;
+  }
+  .feature-list li:hover {
+    transform: translateX(5px);
+    color: var(--primary-color);
   }
   .feature-list li::before {
     content: '✓';
@@ -144,10 +210,15 @@
     font-size: 1.2rem;
     font-weight: 700;
     margin-right: 12px;
+    transition: var(--transition-standard);
+  }
+  .feature-list li:hover::before {
+    transform: scale(1.2);
   }
 
   #authContainer {
     padding: 36px;
+    position: relative;
   }
   
   @media (min-width: 800px) {
@@ -173,6 +244,10 @@
     text-align: center;
     user-select: none;
     letter-spacing: 0.1em;
+    background: linear-gradient(90deg, var(--primary-color), #00e6c3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .tagline {
     text-align: center;
@@ -201,6 +276,7 @@
     -webkit-mask-position: center;
     mask-position: center;
     transition: background-color 0.3s ease;
+    z-index: 1;
   }
   .field-group-user::before {
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E");
@@ -223,14 +299,14 @@
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-    transition: all 0.4s ease-out;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     max-height: 0;
     opacity: 0;
     overflow: hidden;
     margin-bottom: 0;
   }
   .name-fields.visible {
-    max-height: 180px;
+    max-height: 180px; /* Adjusted for potential error message height */
     opacity: 1;
     margin-bottom: 16px;
   }
@@ -239,21 +315,25 @@
   }
   .name-fields .field-group {
     flex-basis: calc(50% - 8px);
+    margin-bottom: 0; /* Removed default margin */
   }
   .name-fields .phone-field-group {
     flex-basis: 100%;
   }
   input[type=text], input[type=email], input[type=password], input[type=tel] {
     padding: 13px 14px 13px 44px;
-    border: 1.5px solid var(--input-border);
     border-radius: 10px;
-    background-color: var(--input-bg);
     color: var(--text-color);
     font-size: 16px;
     font-family: 'Inter', sans-serif;
     outline: none;
-    transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    transition: var(--transition-standard);
     width: 100%;
+    position: relative;
+    
+    /* --- Reverted from glassmorphism --- */
+    background-color: var(--input-bg);
+    border: 1.5px solid var(--input-border);
   }
   .name-fields input[type=text] {
     padding-left: 14px;
@@ -262,6 +342,7 @@
   input:focus {
     border-color: var(--input-focus);
     box-shadow: 0 0 0 3px var(--primary-glow);
+    transform: translateY(-2px);
   }
   .field-group-icon:focus-within::before {
     background-color: var(--input-focus);
@@ -269,6 +350,16 @@
   .input-error {
     border-color: var(--error-color) !important;
     background-color: var(--error-bg);
+    animation: shake 0.5s ease-in-out;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+  .input-success {
+    border-color: var(--success-color) !important;
+    background-color: rgba(76, 175, 80, 0.05);
   }
   .input-error:focus {
     box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.2);
@@ -279,6 +370,21 @@
     color: var(--error-color);
     min-height: 18px;
     user-select: none;
+    gap: 5px;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: all 0.3s ease;
+    
+    /* --- Hiding Error Text as requested previously --- */
+    display: none !important;
+  }
+  .error-message.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .error-message::before {
+    content: '⚠';
+    font-size: 12px;
   }
   .caps-lock-warning {
     color: var(--primary-color);
@@ -288,6 +394,14 @@
     margin-top: -12px;
     margin-bottom: 12px;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+  }
+  .caps-lock-warning::before {
+    content: '⚠';
+    font-size: 10px;
   }
   button {
     width: 100%;
@@ -301,12 +415,43 @@
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     user-select: none;
-    transition: all 0.3s ease;
+    transition: var(--transition-standard);
+    position: relative;
+    overflow: hidden;
+  }
+  button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+  }
+  button:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+  }
+  @keyframes ripple {
+    0% {
+      transform: scale(0, 0);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(20, 20);
+      opacity: 0;
+    }
   }
   button:hover {
     background-color: var(--primary-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px var(--primary-glow);
+  }
+  button:active {
+    transform: translateY(0);
   }
   .google-button {
     margin-top: 16px;
@@ -314,19 +459,21 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    background-color: var(--input-bg);
     border-radius: 10px;
     padding: 12px 0;
     font-weight: 600;
     color: var(--text-color);
     cursor: pointer;
+    transition: var(--transition-standard);
+    
+    /* --- Reverted from glassmorphism --- */
+    background-color: var(--input-bg);
     border: 1.5px solid var(--input-border);
-    transition: background-color 0.3s ease;
   }
   .google-button:hover {
     background-color: var(--input-border);
-    transform: none;
-    box-shadow: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
   .google-button img {
     width: 20px;
@@ -343,10 +490,75 @@
     color: var(--primary-color);
     font-weight: 600;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: var(--transition-standard);
+    position: relative;
+    padding-bottom: 2px;
+  }
+  .switcher span::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
   }
   .switcher span:hover {
     color: var(--primary-hover);
+  }
+  .switcher span:hover::after {
+    width: 100%;
+  }
+  
+  /* Loading animation */
+  .loading {
+    position: relative;
+    pointer-events: none;
+    color: transparent !important;
+  }
+  .loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Success animation */
+  .success {
+    background-color: var(--success-color) !important;
+    animation: pulse 0.5s ease-in-out;
+  }
+  
+  /* Password visibility toggle */
+  .password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 13px;
+    background: none;
+    border: none;
+    color: var(--muted-text);
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: var(--transition-standard);
+  }
+  .password-toggle:hover {
+    color: var(--text-color);
   }
   
   @media (max-width: 799px) {
@@ -377,13 +589,7 @@
       margin-bottom: 16px;
     }
     .name-fields.visible {
-      max-height: 300px;
-    }
-    .name-fields .error-message {
-      display: block;
-    }
-    #desktopErrorMessages {
-      display: none; 
+      max-height: 300px; /* Adjusted for 3 stacked fields */
     }
   }
   @media (min-width: 461px) and (max-width: 799px) {
@@ -399,18 +605,14 @@
         flex-basis: 100%;
       }
       .name-fields.visible {
-        max-height: 180px;
+        max-height: 180px; /* Adjusted for 2 rows */
       }
   }
 
-  @media (min-width: 461px) {
-    .name-fields .error-message {
-      display: none;
-    }
-  }
 </style>
 </head>
 <body>
+
   <div id="splash" role="banner" aria-live="polite" aria-label="Loading splash screen">
     <div id="splashTitle">CoinNAI</div>
     <div id="tagline">Smart Portfolio + AI Signals</div>
@@ -437,24 +639,17 @@
       <div class="name-fields" id="nameFields">
         <div class="field-group">
           <input type="text" id="firstName" placeholder="First Name" autocomplete="given-name" aria-label="First Name" />
-          <div class="error-message mobile-error" id="firstNameErrorMobile"></div>
+          <div class="error-message" id="firstNameError"></div>
         </div>
         <div class="field-group">
           <input type="text" id="surname" placeholder="Surname" autocomplete="family-name" aria-label="Surname" />
-          <div class="error-message mobile-error" id="surnameErrorMobile"></div>
+          <div class="error-message" id="surnameError"></div>
         </div>
         <div class="field-group field-group-icon field-group-phone phone-field-group">
           <input type="tel" id="phone" placeholder="Phone Number" autocomplete="tel" aria-label="Phone Number" />
-          <div class="error-message mobile-error" id="phoneErrorMobile"></div>
+          <div class="error-message" id="phoneError"></div>
         </div>
       </div>
-      
-      <div id="desktopErrorMessages" style="display: flex; flex-wrap: wrap; gap: 0 16px; margin-top: -16px;">
-         <div id="firstNameError" class="error-message" style="flex-basis: calc(50% - 8px);"></div>
-         <div id="surnameError" class="error-message" style="flex-basis: calc(50% - 8px);"></div>
-         <div id="phoneError" class="error-message" style="flex-basis: 100%;"></div>
-      </div>
-
       <div class="field-group field-group-icon field-group-email">
         <input type="email" id="email" placeholder="Email" autocomplete="username" aria-label="Email" />
         <div id="emailError" class="error-message"></div>
@@ -462,216 +657,7 @@
 
       <div class="field-group field-group-icon field-group-password">
         <input type="password" id="password" placeholder="Password" autocomplete="current-password" aria-label="Password" />
-        <div id="capsWarning" class="caps-lock-warning" aria-live="polite"></div>
-        <div id="passwordError" class="error-message"></div>
-      </div>
-
-      <button id="submitBtn" type="button">Login</button>
-      
-      <button class="google-button" id="googleBtn" type="button" aria-label="Continue with Google">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" />
-        <span>Continue with Google</span>
-      </button>
-
-      <p class="switcher" id="toggleForm" role="button" tabindex="0" aria-pressed="false">
-        Don't have an account? <span id="toggleLink">Register</span>
-      </p>
-    </main>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-    import { 
-      getAuth, 
-      createUserWithEmailAndPassword, 
-      signInWithEmailAndPassword, 
-      GoogleAuthProvider, 
-      signInWithPopup, 
-      // sendEmailVerification, // <-- REMOVED for smoother demo
-      updateProfile 
-    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-    // import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCYUpLjTSMQ-OvTexCymlLmfIw2KAn5rn8",
-      authDomain: "coinnai.firebaseapp.com",
-      projectId: "coinnai",
-      storageBucket: "coinnai.firebasestorage.app",
-      messagingSenderId: "619889316892",
-      appId: "1:619889316892:web:b19240bbafa08fdd327bd9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    // const db = getFirestore(app);
-
-    const formTitle = document.getElementById('formTitle');
-    const toggleForm = document.getElementById('toggleForm');
-    const toggleLink = document.getElementById('toggleLink');
-    const submitBtn = document.getElementById('submitBtn');
-    const googleBtn = document.getElementById('googleBtn');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const emailError = document.getElementById('emailError');
-    const passwordError = document.getElementById('passwordError');
-    const capsWarning = document.getElementById('capsWarning');
-    const firstNameInput = document.getElementById('firstName');
-    const surnameInput = document.getElementById('surname');
-    const phoneInput = document.getElementById('phone');
-    const nameFields = document.getElementById('nameFields');
-    const firstNameError = document.getElementById('firstNameError');
-    const surnameError = document.getElementById('surnameError');
-    const phoneError = document.getElementById('phoneError');
-    const firstNameErrorMobile = document.getElementById('firstNameErrorMobile');
-    const surnameErrorMobile = document.getElementById('surnameErrorMobile');
-    const phoneErrorMobile = document.getElementById('phoneErrorMobile');
-
-    let isLogin = true;
-
-    function validateEmail(email) {
-      return /^[^s@]+@[^s@]+.[^s@]+$/.test(String(email).toLowerCase());
-    }
-    function validatePassword(password) {
-      return password.length >= 6;
-    }
-    function validateName(name) {
-      return name.trim().length >= 2;
-    }
-    function validatePhone(phone) {
-      return phone.trim().length >= 10;
-    }
-    
-    function setError(el, elMobile, msg) {
-      el.textContent = msg;
-      elMobile.textContent = msg;
-    }
-
-    function clearErrors() {
-      [emailError, passwordError].forEach(el => el.textContent = "");
-      setError(firstNameError, firstNameErrorMobile, "");
-      setError(surnameError, surnameErrorMobile, "");
-      setError(phoneError, phoneErrorMobile, "");
-      [emailInput, passwordInput, firstNameInput, surnameInput, phoneInput].forEach(el => el.classList.remove('input-error'));
-    }
-
-    passwordInput.addEventListener('keyup', e => {
-      try {
-        capsWarning.textContent = e.getModifierState && e.getModifierState('CapsLock') ? 'Caps Lock is ON' : '';
-      } catch (err) { /* Silently fail */ }
-    });
-
-    toggleForm.addEventListener('click', () => {
-      isLogin = !isLogin;
-      formTitle.textContent = isLogin ? 'Login' : 'Register';
-      submitBtn.textContent = isLogin ? 'Login' : 'Register';
-      toggleLink.textContent = isLogin ? 'Register' : 'Login';
-      toggleForm.setAttribute('aria-pressed', String(!isLogin));
-      clearErrors();
-      nameFields.classList.toggle('visible', !isLogin);
-    });
-
-    submitBtn.addEventListener('click', async () => {
-      clearErrors();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      const firstName = firstNameInput.value.trim();
-      const surname = surnameInput.value.trim();
-      const phone = phoneInput.value.trim();
-      let valid = true;
-
-      if (!validateEmail(email)) {
-        emailError.textContent = "Please enter a valid email.";
-        emailInput.classList.add('input-error');
-        valid = false;
-      }
-      if (!validatePassword(password)) {
-        passwordError.textContent = "Password must be at least 6 characters.";
-        passwordInput.classList.add('input-error');
-        valid = false;
-      }
-      if (!isLogin) {
-        if (!validateName(firstName)) {
-          setError(firstNameError, firstNameErrorMobile, "First name must be at least 2 characters.");
-          firstNameInput.classList.add('input-error');
-          valid = false;
-        }
-        if (!validateName(surname)) {
-          setError(surnameError, surnameErrorMobile, "Surname must be at least 2 characters.");
-          surnameInput.classList.add('input-error');
-          valid = false;
-        }
-        if (!validatePhone(phone)) {
-          setError(phoneError, phoneErrorMobile, "Please enter a valid phone number.");
-          phoneInput.classList.add('input-error');
-          valid = false;
-        }
-      }
-
-      if (!valid) return;
-      
-      submitBtn.disabled = true;
-      submitBtn.textContent = isLogin ? 'Logging in...' : 'Registering...';
-
-      try {
-        if (isLogin) {
-          await signInWithEmailAndPassword(auth, email, password);
-          window.location.href = "app.html";
-        } else {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          await updateProfile(userCredential.user, {
-            displayName: `${firstName} ${surname}`
-          });
-          console.log("User created. Saving phone number to DB (placeholder):", phone);
-          
-          // REMOVED: Email verification step
-          // await sendEmailVerification(userCredential.user);
-          
-          window.location.href = "app.html";
-        }
-      } catch (err) {
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-          passwordError.textContent = "Invalid email or password.";
-          passwordInput.classList.add('input-error');
-          emailInput.classList.add('input-error');
-        } else if (err.code === 'auth/email-already-in-use') {
-          emailError.textContent = "Email is already registered.";
-          emailInput.classList.add('input-error');
-        } else {
-          passwordError.textContent = err.message;
-        }
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = isLogin ? 'Login' : 'Register';
-      }
-    });
-
-    googleBtn.addEventListener('click', async () => {
-      try {
-        await signInWithPopup(auth, provider);
-        window.location.href = "app.html";
-      } catch (err) {
-        if (err.code !== 'auth/popup-closed-by-user') {
-            passwordError.textContent = "Google Sign-In failed. Please try again.";
-        }
-      }
-    });
-
-    [emailInput, passwordInput, firstNameInput, surnameInput, phoneInput].forEach(el => {
-      el.addEventListener('keyup', e => {
-        if (e.key === 'Enter') submitBtn.click();
-      });
-    });
-
-    window.onload = () => {
-      setTimeout(() => {
-        const splash = document.getElementById('splash');
-        splash.classList.add('hidden');
-        
-        const layoutWrapper = document.getElementById('layoutWrapper');
-        layoutWrapper.classList.add('visible');
-      }, 1380);
-    };
-  </script>
-</body>
-</html>
+        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
+          👁
+        </button>
+     
