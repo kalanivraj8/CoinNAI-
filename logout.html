@@ -38,7 +38,7 @@
   <div>Logging out...</div>
 </div>
 
-<script type"module">
+<script type="module">
   // --- Firebase SDK ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
   import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
@@ -62,14 +62,14 @@
     try {
       await signOut(auth);
       // Success. Redirect to login page.
-      window.location.href = "login.html";
+      window.location.href = "auth.html"; // <-- MODIFIED
     } catch (error) {
       // Handle errors
       console.error("Logout Error:", error);
       document.getElementById('loader').textContent = "Error logging out. Please go to login page.";
       // Still redirect, as user is likely in a broken state
       setTimeout(() => {
-        window.location.href = "login.html";
+        window.location.href = "auth.html"; // <-- MODIFIED
       }, 2000);
     }
   }
