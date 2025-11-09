@@ -660,4 +660,334 @@
         <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility">
           👁
         </button>
-     
+        <div id="capsWarning" class="caps-lock-warning" aria-live="polite"></div>
+        <div id="passwordError" class="error-message"></div>
+      </div>
+
+      <button id="submitBtn" type="button">Login</button>
+      
+      <button class="google-button" id="googleBtn" type="button" aria-label="Continue with Google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" />
+        <span>Continue with Google</span>
+      </button>
+
+      <p class="switcher" id="toggleForm" role="button" tabindex="0" aria-pressed="false">
+        Don't have an account? <span id="toggleLink">Register</span>
+      </p>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      GoogleAuthProvider, 
+      signInWithPopup, 
+      updateProfile 
+    } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCYUpLjTSMQ-OvTexCymlLmfIw2KAn5rn8",
+      authDomain: "coinnai.firebaseapp.com",
+      projectId: "coinnai",
+      storageBucket: "coinnai.firebasestorage.app",
+      messagingSenderId: "619889316892",
+      appId: "1:619889316892:web:b19240bbafa08fdd327bd9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // UI Elements
+    const formTitle = document.getElementById('formTitle');
+    const toggleForm = document.getElementById('toggleForm');
+    const toggleLink = document.getElementById('toggleLink');
+    const submitBtn = document.getElementById('submitBtn');
+    const googleBtn = document.getElementById('googleBtn');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const capsWarning = document.getElementById('capsWarning');
+    const firstNameInput = document.getElementById('firstName');
+    const surnameInput = document.getElementById('surname');
+    const phoneInput = document.getElementById('phone');
+    const nameFields = document.getElementById('nameFields');
+    const firstNameError = document.getElementById('firstNameError');
+    const surnameError = document.getElementById('surnameError');
+    const phoneError = document.getElementById('phoneError');
+    const passwordToggle = document.getElementById('passwordToggle');
+
+    let isLogin = true;
+    let isPasswordVisible = false;
+    let hasSubmitted = false; // Track if form has been submitted
+
+    // Password visibility toggle
+    passwordToggle.addEventListener('click', () => {
+      isPasswordVisible = !isPasswordVisible;
+      passwordInput.type = isPasswordVisible ? 'text' : 'password';
+      passwordToggle.textContent = isPasswordVisible ? '🙈' : '👁';
+    });
+
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).toLowerCase());
+    }
+    function validatePassword(password) {
+      return password.length >= 6;
+    }
+    function validateName(name) {
+      return name.trim().length >= 2;
+    }
+    function validatePhone(phone) {
+      return phone.trim().length >= 10;
+    }
+    
+    function setError(el, msg) {
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+
+    function clearErrors() {
+      [emailError, passwordError, firstNameError, surnameError, phoneError].forEach(el => {
+        el.textContent = "";
+        el.classList.remove('visible');
+      });
+      [emailInput, passwordInput, firstNameInput, surnameInput, phoneInput].forEach(el => {
+        el.classList.remove('input-error');
+        el.classList.remove('input-success');
+      });
+    }
+
+    function showSuccess(input) {
+      input.classList.add('input-success');
+    }
+
+    function showError(input, errorElement, message) {
+      // Only show errors after user has interacted or submitted
+      if (hasSubmitted || input.classList.contains('touched')) {
+        input.classList.add('input-error');
+        setError(errorElement, message);
+      }
+    }
+
+    passwordInput.addEventListener('keyup', e => {
+      try {
+        capsWarning.textContent = e.getModifierState && e.getModifierState('CapsLock') ? 'Caps Lock is ON' : '';
+      } catch (err) { /* Silently fail */ }
+    });
+
+    // Mark fields as touched when user interacts with them
+    function markAsTouched(input) {
+      input.classList.add('touched');
+    }
+
+    [emailInput, passwordInput, firstNameInput, surnameInput, phoneInput].forEach(input => {
+      input.addEventListener('blur', () => {
+        markAsTouched(input);
+        validateField(input);
+      });
+      
+      // Clear error when user starts typing
+      input.addEventListener('input', () => {
+        if (input.classList.contains('input-error')) {
+          input.classList.remove('input-error');
+          const errorId = input.id + 'Error';
+          const errorElement = document.getElementById(errorId);
+          if (errorElement) {
+            errorElement.textContent = "";
+            errorElement.classList.remove('visible');
+          }
+        }
+      });
+    });
+
+    function validateField(input) {
+      const value = input.value.trim();
+      
+      switch(input.id) {
+        case 'email':
+          if (value && !validateEmail(value)) {
+            showError(input, emailError, "Please enter a valid email.");
+          } else if (value) {
+            showSuccess(input);
+          }
+          break;
+        case 'password':
+          if (value && !validatePassword(value)) {
+            showError(input, passwordError, "Password must be at least 6 characters.");
+          } else if (value) {
+            showSuccess(input);
+          }
+          break;
+        case 'firstName':
+          if (value && !validateName(value)) {
+            showError(input, firstNameError, "First name must be at least 2 characters.");
+          } else if (value) {
+            showSuccess(input);
+          }
+          break;
+        case 'surname':
+          if (value && !validateName(value)) {
+            showError(input, surnameError, "Surname must be at least 2 characters.");
+          } else if (value) {
+            showSuccess(input);
+          }
+          break;
+        case 'phone':
+          if (value && !validatePhone(value)) {
+            showError(input, phoneError, "Please enter a valid phone number.");
+          } else if (value) {
+            showSuccess(input);
+          }
+          break;
+      }
+    }
+
+    toggleForm.addEventListener('click', () => {
+      isLogin = !isLogin;
+      formTitle.textContent = isLogin ? 'Login' : 'Register';
+      submitBtn.textContent = isLogin ? 'Login' : 'Register';
+      toggleLink.textContent = isLogin ? 'Register' : 'Login';
+      toggleForm.setAttribute('aria-pressed', String(!isLogin));
+      clearErrors();
+      nameFields.classList.toggle('visible', !isLogin);
+      hasSubmitted = false; // Reset submission state when switching forms
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      hasSubmitted = true; // Mark that user has attempted submission
+      clearErrors();
+      
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const firstName = firstNameInput.value.trim();
+      const surname = surnameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      let valid = true;
+
+      // Validate all fields
+      if (!validateEmail(email)) {
+        emailInput.classList.add('input-error');
+        setError(emailError, "Please enter a valid email.");
+        valid = false;
+      }
+      if (!validatePassword(password)) {
+        passwordInput.classList.add('input-error');
+        setError(passwordError, "Password must be at least 6 characters.");
+        valid = false;
+      }
+      if (!isLogin) {
+        if (!validateName(firstName)) {
+          firstNameInput.classList.add('input-error');
+          setError(firstNameError, "First name must be at least 2 characters.");
+          valid = false;
+        }
+        if (!validateName(surname)) {
+          surnameInput.classList.add('input-error');
+          setError(surnameError, "Surname must be at least 2 characters.");
+          valid = false;
+        }
+        if (!validatePhone(phone)) {
+          phoneInput.classList.add('input-error');
+          setError(phoneError, "Please enter a valid phone number.");
+          valid = false;
+        }
+      }
+
+      if (!valid) return;
+
+      // Show loading state
+      submitBtn.classList.add('loading');
+      
+      try {
+        if (isLogin) {
+          await signInWithEmailAndPassword(auth, email, password);
+          // Show success state
+          submitBtn.classList.remove('loading');
+          submitBtn.classList.add('success');
+          submitBtn.textContent = 'Success!';
+          
+          // --- MODIFICATION: Redirect to index.html ---
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+          
+        } else {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(userCredential.user, {
+            displayName: `${firstName} ${surname}`
+          });
+          
+          // Show success state
+          submitBtn.classList.remove('loading');
+          submitBtn.classList.add('success');
+          submitBtn.textContent = 'Account Created!';
+          
+          // --- MODIFICATION: Redirect to index.html ---
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+        }
+      } catch (error) {
+        submitBtn.classList.remove('loading');
+        let errorMessage = "An error occurred. Please try again.";
+        
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = "This email is already registered.";
+            emailInput.classList.add('input-error');
+            setError(emailError, errorMessage);
+            break;
+          case 'auth/invalid-email':
+            errorMessage = "Invalid email address.";
+            emailInput.classList.add('input-error');
+            setError(emailError, errorMessage);
+            break;
+          case 'auth/weak-password':
+            errorMessage = "Password is too weak.";
+            passwordInput.classList.add('input-error');
+            setError(passwordError, errorMessage);
+            break;
+          case 'auth/user-not-found':
+            errorMessage = "No account found with this email.";
+            emailInput.classList.add('input-error');
+            setError(emailError, errorMessage);
+            break;
+          case 'auth/wrong-password':
+            errorMessage = "Incorrect password.";
+            passwordInput.classList.add('input-error');
+            setError(passwordError, errorMessage);
+            break;
+          default:
+            alert(errorMessage);
+        }
+      }
+    });
+
+    googleBtn.addEventListener('click', async () => {
+      googleBtn.classList.add('loading');
+      try {
+        await signInWithPopup(auth, provider);
+        googleBtn.classList.remove('loading');
+        
+        // --- MODIFICATION: Redirect to index.html ---
+        window.location.href = 'index.html';
+        
+      } catch (error) {
+        googleBtn.classList.remove('loading');
+        alert('Google authentication failed. Please try again.');
+      }
+    });
+
+    // Splash screen timeout
+    setTimeout(() => {
+      document.getElementById('splash').classList.add('hidden');
+      document.getElementById('layoutWrapper').classList.add('visible');
+    }, 2000);
+  </script>
+
+  </body>
+</html>
